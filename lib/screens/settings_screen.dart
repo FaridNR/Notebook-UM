@@ -396,41 +396,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 14),
-
-                        // Barcode Strip
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.35),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: List.generate(24, (i) {
-                                  final isThick = (i % 3 == 0 || i % 7 == 0);
-                                  return Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                                    width: isThick ? 2.5 : 1.2,
-                                    height: 16,
-                                    color: Colors.white.withValues(alpha: 0.75),
-                                  );
-                                }),
-                              ),
-                              Text(
-                                '${widget.appState.nim} • WITA',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.5,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),
