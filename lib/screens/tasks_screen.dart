@@ -7,6 +7,7 @@ import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/add_task_sheet.dart';
 import '../widgets/course_badge.dart';
+import '../widgets/edit_task_sheet.dart';
 
 class TasksScreen extends StatefulWidget {
   final AppState appState;
@@ -73,7 +74,20 @@ class _TasksScreenState extends State<TasksScreen> {
                       Text(task.courseName, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textSecondary)),
                     ],
                   ),
-                  IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(ctx)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                        tooltip: 'Ubah Tugas',
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          EditTaskSheet.show(context, widget.appState, task);
+                        },
+                      ),
+                      IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -108,6 +122,7 @@ class _TasksScreenState extends State<TasksScreen> {
               Row(
                 children: [
                   Expanded(
+                    flex: 4,
                     child: GestureDetector(
                       onTap: () {
                         widget.appState.toggleTaskCompletion(task.id);
@@ -131,7 +146,44 @@ class _TasksScreenState extends State<TasksScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 3,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        EditTaskSheet.show(context, widget.appState, task);
+                      },
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkSurfaceStep2 : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF2E384D) : const Color(0xFFBFDBFE),
+                            width: 1,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.edit_outlined, size: 15, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Ubah',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
                       widget.appState.deleteTask(task.id);
@@ -139,7 +191,7 @@ class _TasksScreenState extends State<TasksScreen> {
                     },
                     child: Container(
                       height: 44,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.roseDarkBg : AppColors.roseLightBg,
                         borderRadius: BorderRadius.circular(12),
@@ -175,10 +227,16 @@ class _TasksScreenState extends State<TasksScreen> {
     if (!hasProvider) {
       return ChangeNotifierProvider<AppState>.value(
         value: widget.appState,
-        child: Builder(builder: (ctx) => _buildContent(ctx)),
+        child: ListenableBuilder(
+          listenable: widget.appState,
+          builder: (ctx, _) => _buildContent(ctx),
+        ),
       );
     }
-    return _buildContent(context);
+    return ListenableBuilder(
+      listenable: widget.appState,
+      builder: (ctx, _) => _buildContent(ctx),
+    );
   }
 
   Widget _buildContent(BuildContext context) {

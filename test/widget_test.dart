@@ -5,6 +5,7 @@ import 'package:notebook_um/main.dart';
 import 'package:notebook_um/models/task.dart';
 import 'package:notebook_um/screens/courses_screen.dart';
 import 'package:notebook_um/screens/tasks_screen.dart';
+import 'package:notebook_um/widgets/edit_task_sheet.dart';
 import 'package:notebook_um/state/app_state.dart';
 
 void main() {
@@ -134,6 +135,103 @@ void main() {
     // Verifikasi Consumer me-rebuild tampilan dan menampilkan Total: 1 Catatan
     expect(find.text('Total: 1 Catatan'), findsOneWidget);
     expect(find.textContaining('Total 1 Catatan • 1 Aktif • 0 Selesai'), findsOneWidget);
+
+    appState.dispose();
+  });
+
+  testWidgets('M1: Fitur ubah judul, deskripsi, dan tenggat tugas (M1-T1 s/d M1-T4)', (WidgetTester tester) async {
+    final appState = AppState();
+    final task = CourseTask(
+      id: 'task-test-edit',
+      title: 'StudyLog',
+      courseId: 'course-111100',
+      courseCode: '111100',
+      courseName: 'Penalaran Komputer',
+      priority: TaskPriority.medium,
+      dueCategory: TaskDueCategory.upcoming,
+      dueText: '6/11/2026 • 23:59 WITA',
+      notes: 'Membuat pencatat tugas real-time',
+    );
+    appState.addTask(task);
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<AppState>.value(
+        value: appState,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TasksScreen(appState: appState),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verifikasi task awal tampil pada card
+    expect(find.text('StudyLog'), findsOneWidget);
+    expect(find.text('Membuat pencatat tugas real-time'), findsOneWidget);
+
+    // Tap kartu tugas untuk membuka modal detail sheet
+    await tester.tap(find.text('StudyLog'));
+    await tester.pumpAndSettle();
+
+    // Verifikasi tombol Ubah tersedia dan tap tombol Ubah
+    final ubahBtn = find.text('Ubah');
+    expect(ubahBtn, findsOneWidget);
+    await tester.tap(ubahBtn);
+    await tester.pumpAndSettle();
+
+    // Verifikasi form Ubah Tugas terbuka
+    expect(find.text('Ubah Tugas'), findsOneWidget);
+    expect(find.text('Judul Tugas / Catatan'), findsOneWidget);
+    expect(find.text('Deskripsi / Catatan'), findsOneWidget);
+    expect(find.text('Tenggat Waktu'), findsOneWidget);
+
+    // M1-T1: Kosongkan judul lalu klik Simpan Perubahan -> pesan wajib diisi tampil
+    final judulField = find.byType(TextFormField).first;
+    await tester.enterText(judulField, '');
+    final simpanBtn = find.text('Simpan Perubahan');
+    await tester.ensureVisible(simpanBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(simpanBtn);
+    await tester.pumpAndSettle();
+    expect(find.text('Judul tugas wajib diisi dan tidak boleh hanya spasi'), findsOneWidget);
+
+    // M1-T2: Isi dengan hanya spasi -> validasi menolak input
+    await tester.enterText(judulField, '    ');
+    await tester.ensureVisible(simpanBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(simpanBtn);
+    await tester.pumpAndSettle();
+    expect(find.text('Judul tugas wajib diisi dan tidak boleh hanya spasi'), findsOneWidget);
+
+    // M1-T4: Ubah judul, deskripsi, dan pilih tenggat Next Session
+    await tester.enterText(judulField, 'StudyLog Pro Max');
+    final descField = find.byType(TextFormField).at(1);
+    await tester.enterText(descField, 'Pencatatan real-time dan notifikasi tenggat');
+    final nextSessionChip = find.descendant(
+      of: find.byType(EditTaskSheet),
+      matching: find.text('Next Session'),
+    );
+    await tester.tap(nextSessionChip);
+    await tester.pumpAndSettle();
+
+    // Simpan Perubahan
+    final simpanActionBtn = find.descendant(
+      of: find.byType(EditTaskSheet),
+      matching: find.text('Simpan Perubahan'),
+    );
+    await tester.ensureVisible(simpanActionBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(simpanActionBtn);
+    await tester.pumpAndSettle();
+
+    // M1-T3: SnackBar konfirmasi muncul
+    expect(find.textContaining('berhasil diperbarui'), findsOneWidget);
+
+    // M1-T4: Isi Card di layar tugas telah ter-update dengan judul dan deskripsi baru
+    expect(find.text('StudyLog Pro Max'), findsOneWidget);
+    expect(find.text('Pencatatan real-time dan notifikasi tenggat'), findsOneWidget);
+    expect(find.text('StudyLog'), findsNothing);
 
     appState.dispose();
   });
