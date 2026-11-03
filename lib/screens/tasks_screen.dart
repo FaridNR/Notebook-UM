@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
@@ -165,6 +166,22 @@ class _TasksScreenState extends State<TasksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool hasProvider = true;
+    try {
+      Provider.of<AppState>(context, listen: false);
+    } catch (_) {
+      hasProvider = false;
+    }
+    if (!hasProvider) {
+      return ChangeNotifierProvider<AppState>.value(
+        value: widget.appState,
+        child: Builder(builder: (ctx) => _buildContent(ctx)),
+      );
+    }
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgCard = isDark ? AppColors.darkSurface : AppColors.lightSurface;
@@ -222,28 +239,57 @@ class _TasksScreenState extends State<TasksScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Daftar Tugas',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${widget.appState.activeTasksCount} Tugas Aktif • ${widget.appState.completedTasksCount} Selesai',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
-                        ),
-                      ),
-                    ],
+                  Consumer<AppState>(
+                    builder: (context, state, _) {
+                      final totalCatatan = state.tasks.length;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Daftar Tugas',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: textPrimary,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E2430) : const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDark ? const Color(0xFF2E384D) : const Color(0xFFBFDBFE),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Total: $totalCatatan Catatan',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Total $totalCatatan Catatan • ${state.activeTasksCount} Aktif • ${state.completedTasksCount} Selesai',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: textSecondary,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   GestureDetector(
                     onTap: () => AddTaskSheet.show(context, widget.appState),

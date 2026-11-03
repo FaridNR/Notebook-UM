@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'screens/auth_screen.dart';
 import 'screens/today_screen.dart';
 import 'screens/schedule_screen.dart';
@@ -56,20 +57,23 @@ class _NoteBookUMAppState extends State<NoteBookUMApp> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _appState,
-      builder: (context, _) {
-        return MaterialApp(
-          title: 'NoteBook UM',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: _appState.themeMode,
-          home: _appState.isLoggedIn
-              ? HomeScreen(appState: _appState)
-              : AuthScreen(appState: _appState),
-        );
-      },
+    return ChangeNotifierProvider<AppState>.value(
+      value: _appState,
+      child: ListenableBuilder(
+        listenable: _appState,
+        builder: (context, _) {
+          return MaterialApp(
+            title: 'NoteBook UM',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: _appState.themeMode,
+            home: _appState.isLoggedIn
+                ? HomeScreen(appState: _appState)
+                : AuthScreen(appState: _appState),
+          );
+        },
+      ),
     );
   }
 }
