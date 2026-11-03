@@ -67,6 +67,21 @@ void main() {
     // Verifikasi modal Tambah Tugas terbuka
     expect(find.text('Tambah Tugas'), findsOneWidget);
     expect(find.text('Pencatatan Cepat & Terhubung Sesi Kuliah'), findsOneWidget);
+
+    // Buka pemilih mata kuliah (Ganti) dan pastikan tidak overflow
+    final gantiBtn = find.text('Ganti');
+    expect(gantiBtn, findsOneWidget);
+    await tester.tap(gantiBtn);
+    await tester.pumpAndSettle();
+
+    // Verifikasi daftar Pilih Mata Kuliah tampil rapi dalam modal scrollable bebas overflow
+    expect(find.text('Pilih Mata Kuliah'), findsOneWidget);
+    expect(find.text('111500 • Sistem Manajemen Basis Data'), findsOneWidget);
+
+    // Pilih salah satu mata kuliah dan modal tertutup
+    await tester.tap(find.text('111500 • Sistem Manajemen Basis Data'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pilih Mata Kuliah'), findsNothing);
   });
 
   testWidgets('Halaman Tentang Aplikasi dapat dibuka dari Beranda dan menampilkan info aplikasi & profil', (WidgetTester tester) async {

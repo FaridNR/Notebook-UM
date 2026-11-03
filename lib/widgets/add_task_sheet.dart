@@ -173,65 +173,119 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
 
   void _showCoursePicker() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.75,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Pilih Mata Kuliah',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
                 const SizedBox(height: 12),
-                ...widget.appState.courses.map((course) {
-                  final isSelected = _selectedCourse?.id == course.id;
-                  return ListTile(
-                    leading: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: course.accentColor,
-                        shape: BoxShape.circle,
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF272A34) : const Color(0xFFE5E8EC),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Pilih Mata Kuliah',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
+                        ),
                       ),
-                    ),
-                    title: Text(
-                      '${course.code} • ${course.name}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20),
+                        onPressed: () => Navigator.pop(ctx),
                       ),
-                    ),
-                    subtitle: Text(
-                      course.lecturer,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing: isSelected ? const Icon(Icons.check, size: 20) : null,
-                    onTap: () {
-                      setState(() {
-                        _selectedCourse = course;
-                      });
-                      Navigator.pop(ctx);
-                    },
-                  );
-                }),
-                ListTile(
-                  leading: const Icon(Icons.person_outline, size: 20),
-                  title: const Text('Tugas Mandiri (Non-Kuliah)'),
-                  onTap: () {
-                    setState(() {
-                      _selectedCourse = null;
-                    });
-                    Navigator.pop(ctx);
-                  },
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Flexible(
+                  child: ListView(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    children: [
+                      ...widget.appState.courses.map((course) {
+                        final isSelected = _selectedCourse?.id == course.id;
+                        return ListTile(
+                          leading: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: course.accentColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          title: Text(
+                            '${course.code} • ${course.name}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: textPrimary,
+                            ),
+                          ),
+                          subtitle: Text(
+                            course.lecturer,
+                            style: TextStyle(fontSize: 12, color: textSecondary),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(Icons.check, size: 20, color: Color(0xFF2563EB))
+                              : null,
+                          onTap: () {
+                            setState(() {
+                              _selectedCourse = course;
+                            });
+                            Navigator.pop(ctx);
+                          },
+                        );
+                      }),
+                      ListTile(
+                        leading: const Icon(Icons.person_outline, size: 20),
+                        title: Text(
+                          'Tugas Mandiri (Non-Kuliah)',
+                          style: TextStyle(fontSize: 14, color: textPrimary),
+                        ),
+                        subtitle: Text(
+                          'Tugas atau kegiatan di luar 8 mata kuliah resmi',
+                          style: TextStyle(fontSize: 12, color: textSecondary),
+                        ),
+                        trailing: _selectedCourse == null
+                            ? const Icon(Icons.check, size: 20, color: Color(0xFF2563EB))
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            _selectedCourse = null;
+                          });
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
