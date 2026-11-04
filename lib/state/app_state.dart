@@ -87,24 +87,27 @@ class AppState extends ChangeNotifier {
         await _dbService.seedInitialCourses(_courses);
       } else {
         final loadedCourses = await _dbService.getCourses();
-        final loadedTasks = await _dbService.getTasks();
-        final settings = await _dbService.getAllSettings();
-
         if (loadedCourses.isNotEmpty) {
           _courses = loadedCourses;
         }
-        _tasks = loadedTasks;
-
-        if (settings.containsKey('display_name')) _displayName = settings['display_name']!;
-        if (settings.containsKey('nim')) _nim = settings['nim']!;
-        if (settings.containsKey('prodi')) _prodi = settings['prodi']!;
-        if (settings.containsKey('timezone')) _timezone = settings['timezone']!;
-        if (settings.containsKey('is_reminder_h24')) _isReminderH24 = settings['is_reminder_h24'] == '1';
-        if (settings.containsKey('is_reminder_h1')) _isReminderH1 = settings['is_reminder_h1'] == '1';
-        if (settings.containsKey('theme_mode')) {
-          _themeMode = settings['theme_mode'] == 'dark' ? ThemeMode.dark : ThemeMode.light;
-        }
       }
+
+      // Selalu load seluruh catatan tugas & pengaturan dari database SQLite
+      final loadedTasks = await _dbService.getTasks();
+      final settings = await _dbService.getAllSettings();
+
+      _tasks = loadedTasks;
+
+      if (settings.containsKey('display_name')) _displayName = settings['display_name']!;
+      if (settings.containsKey('nim')) _nim = settings['nim']!;
+      if (settings.containsKey('prodi')) _prodi = settings['prodi']!;
+      if (settings.containsKey('timezone')) _timezone = settings['timezone']!;
+      if (settings.containsKey('is_reminder_h24')) _isReminderH24 = settings['is_reminder_h24'] == '1';
+      if (settings.containsKey('is_reminder_h1')) _isReminderH1 = settings['is_reminder_h1'] == '1';
+      if (settings.containsKey('theme_mode')) {
+        _themeMode = settings['theme_mode'] == 'dark' ? ThemeMode.dark : ThemeMode.light;
+      }
+
       _isDbLoaded = true;
       notifyListeners();
     } catch (e) {

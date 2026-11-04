@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common/utils/utils.dart' as sqflite_utils;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../models/course.dart';
 import '../../models/schedule_slot.dart';
@@ -20,6 +21,7 @@ class DatabaseService {
   /// Initialize database factory for Desktop and test environments
   static void setupDatabaseFactory() {
     if (_factoryInitialized) return;
+    sqflite_utils.lockWarningCallback = null;
     if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
