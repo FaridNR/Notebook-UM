@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common/utils/utils.dart' as sqflite_utils;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../models/course.dart';
 import '../../models/schedule_slot.dart';
@@ -21,7 +20,6 @@ class DatabaseService {
   /// Initialize database factory for Desktop and test environments
   static void setupDatabaseFactory() {
     if (_factoryInitialized) return;
-    sqflite_utils.lockWarningCallback = null;
     if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
@@ -50,7 +48,7 @@ class DatabaseService {
       dbPath = p.join(databasesPath, 'notebook_um.db');
     }
 
-    return await openDatabase(
+    final db = await openDatabase(
       dbPath,
       version: 1,
       onConfigure: (db) async {
@@ -121,6 +119,12 @@ class DatabaseService {
         await db.execute('CREATE INDEX idx_tasks_course ON tasks (course_id);');
       },
     );
+
+    try {
+      (db as dynamic).doNotUseSynchronized = true;
+    } catch (_) {}
+
+    return db;
   }
 
   /// Initialize database explicitly (e.g. for testing with inMemory or custom file)
