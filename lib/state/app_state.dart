@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../core/database/database_service.dart';
 import '../core/time/time_service.dart';
 import '../models/course.dart';
 import '../models/schedule_slot.dart';
@@ -68,10 +69,47 @@ class AppState extends ChangeNotifier {
   int get activeTasksCount => _tasks.where((t) => !t.isCompleted).length;
   int get completedTasksCount => _tasks.where((t) => t.isCompleted).length;
 
-  AppState() {
+  final DatabaseService _dbService;
+  bool _isDbLoaded = false;
+  bool get isDbLoaded => _isDbLoaded;
+
+  AppState({DatabaseService? dbService}) : _dbService = dbService ?? DatabaseService.instance {
     _liveNow = TimeService.nowInWita();
     _startMinuteTicker();
     _initializeData();
+    _loadFromDatabase();
+  }
+
+  Future<void> _loadFromDatabase() async {
+    try {
+      final hasCourses = await _dbService.hasCourses();
+      if (!hasCourses) {
+        await _dbService.seedInitialCourses(_courses);
+      } else {
+        final loadedCourses = await _dbService.getCourses();
+        final loadedTasks = await _dbService.getTasks();
+        final settings = await _dbService.getAllSettings();
+
+        if (loadedCourses.isNotEmpty) {
+          _courses = loadedCourses;
+        }
+        _tasks = loadedTasks;
+
+        if (settings.containsKey('display_name')) _displayName = settings['display_name']!;
+        if (settings.containsKey('nim')) _nim = settings['nim']!;
+        if (settings.containsKey('prodi')) _prodi = settings['prodi']!;
+        if (settings.containsKey('timezone')) _timezone = settings['timezone']!;
+        if (settings.containsKey('is_reminder_h24')) _isReminderH24 = settings['is_reminder_h24'] == '1';
+        if (settings.containsKey('is_reminder_h1')) _isReminderH1 = settings['is_reminder_h1'] == '1';
+        if (settings.containsKey('theme_mode')) {
+          _themeMode = settings['theme_mode'] == 'dark' ? ThemeMode.dark : ThemeMode.light;
+        }
+      }
+      _isDbLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading from SQLite: $e');
+    }
   }
 
   void _startMinuteTicker() {
@@ -329,6 +367,7 @@ class AppState extends ChangeNotifier {
   void toggleTheme() {
     _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     notifyListeners();
+    unawaited(_dbService.setSetting('theme_mode', _themeMode == ThemeMode.dark ? 'dark' : 'light'));
   }
 
   void setTaskSearchQuery(String query) {
@@ -347,10 +386,22 @@ class AppState extends ChangeNotifier {
   }
 
   void updateProfile({String? displayName, String? nim, String? prodi, String? timezone}) {
-    if (displayName != null) _displayName = displayName;
-    if (nim != null) _nim = nim;
-    if (prodi != null) _prodi = prodi;
-    if (timezone != null) _timezone = timezone;
+    if (displayName != null) {
+      _displayName = displayName;
+      unawaited(_dbService.setSetting('display_name', displayName));
+    }
+    if (nim != null) {
+      _nim = nim;
+      unawaited(_dbService.setSetting('nim', nim));
+    }
+    if (prodi != null) {
+      _prodi = prodi;
+      unawaited(_dbService.setSetting('prodi', prodi));
+    }
+    if (timezone != null) {
+      _timezone = timezone;
+      unawaited(_dbService.setSetting('timezone', timezone));
+    }
     notifyListeners();
   }
 
@@ -372,6 +423,7 @@ class AppState extends ChangeNotifier {
       final newStatus = !task.isCompleted;
       task.isCompleted = newStatus;
       _lastToggledTask = task;
+      unawaited(_dbService.updateTask(task));
 
       _undoToastMessage = newStatus ? '1 tugas ditandai selesai' : '1 tugas dibuka kembali';
       _showUndoToast = true;
@@ -400,6 +452,7 @@ class AppState extends ChangeNotifier {
       final index = _tasks.indexWhere((t) => t.id == _lastToggledTask!.id);
       if (index != -1) {
         _tasks[index].isCompleted = !_tasks[index].isCompleted;
+        unawaited(_dbService.updateTask(_tasks[index]));
       }
       _lastToggledTask = null;
     }
@@ -441,6 +494,7 @@ class AppState extends ChangeNotifier {
   void addTask(CourseTask newTask) {
     _tasks.insert(0, newTask);
     notifyListeners();
+    unawaited(_dbService.insertTask(newTask));
   }
 
   void updateTask(CourseTask updatedTask) {
@@ -448,18 +502,21 @@ class AppState extends ChangeNotifier {
     if (idx != -1) {
       _tasks[idx] = updatedTask;
       notifyListeners();
+      unawaited(_dbService.updateTask(updatedTask));
     }
   }
 
   void deleteTask(String taskId) {
     _tasks.removeWhere((t) => t.id == taskId);
     showToast('Tugas telah dihapus');
+    unawaited(_dbService.deleteTask(taskId));
   }
 
   // --- Course CRUD ---
   void addCourse(Course course) {
     _courses.add(course);
     notifyListeners();
+    unawaited(_dbService.insertCourse(course));
   }
 
   void updateCourse(Course updatedCourse) {
@@ -468,6 +525,7 @@ class AppState extends ChangeNotifier {
       _courses[idx] = updatedCourse;
       _recalculateNextSessionTasks(updatedCourse.id);
       notifyListeners();
+      unawaited(_dbService.updateCourse(updatedCourse));
     }
   }
 
@@ -492,6 +550,7 @@ class AppState extends ChangeNotifier {
       }
     }
     showToast('Mata kuliah dihapus, tugas dialihkan ke mandiri');
+    unawaited(_dbService.deleteCourse(courseId));
   }
 
   // --- Schedule Slots CRUD ---
@@ -502,6 +561,7 @@ class AppState extends ChangeNotifier {
       _courses[idx] = _courses[idx].copyWith(slots: updatedSlots);
       _recalculateNextSessionTasks(courseId);
       notifyListeners();
+      unawaited(_dbService.insertSlot(slot));
     }
   }
 
@@ -512,6 +572,7 @@ class AppState extends ChangeNotifier {
       _courses[idx] = _courses[idx].copyWith(slots: updatedSlots);
       _recalculateNextSessionTasks(courseId);
       notifyListeners();
+      unawaited(_dbService.updateSlot(updatedSlot));
     }
   }
 
@@ -522,6 +583,7 @@ class AppState extends ChangeNotifier {
       _courses[idx] = _courses[idx].copyWith(slots: updatedSlots);
       _recalculateNextSessionTasks(courseId);
       notifyListeners();
+      unawaited(_dbService.deleteSlot(slotId));
     }
   }
 
@@ -552,6 +614,7 @@ class AppState extends ChangeNotifier {
               dueText: TimeService.formatNextSessionText(nextDue),
             );
             adjustedCount++;
+            unawaited(_dbService.updateTask(_tasks[i]));
           }
         }
       }
@@ -565,17 +628,20 @@ class AppState extends ChangeNotifier {
   void toggleReminderH24() {
     _isReminderH24 = !_isReminderH24;
     notifyListeners();
+    unawaited(_dbService.setSetting('is_reminder_h24', _isReminderH24 ? '1' : '0'));
   }
 
   void toggleReminderH1() {
     _isReminderH1 = !_isReminderH1;
     notifyListeners();
+    unawaited(_dbService.setSetting('is_reminder_h1', _isReminderH1 ? '1' : '0'));
   }
 
   void clearAllData() {
     _courses = [];
     _tasks = [];
     notifyListeners();
+    unawaited(_dbService.clearAllData());
   }
 
   String exportDataAsJson() {

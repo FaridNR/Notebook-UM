@@ -41,3 +41,11 @@ Dokumen ini mencatat keputusan arsitektural, teknis, dan kompromi desain yang di
 ## 5. Konfirmasi Tindakan Destruktif
 - **Keputusan**: Hapus akun dan reset data lokal memerlukan konfirmasi eksplisit dengan mengetikkan teks **"HAPUS"** pada modal konfirmasi sesuai PRD Bagian 1.5 Flow F.
 - **Rasional**: Mencegah kehilangan data tidak sengaja oleh pengguna mahasiswa.
+
+## 6. Integrasi SQLite Lokal (Persistensi Offline-First)
+- **Keputusan**: Menggunakan `sqflite` dan `sqflite_common_ffi` melalui `DatabaseService` terpusat di `lib/core/database/database_service.dart`.
+- **Rasional**:
+  - Menyediakan persistensi data lokal 100% offline dengan zero-latency untuk mata kuliah, jadwal kelas, tugas, dan pengaturan profil.
+  - Skema tabel (`courses`, `schedule_slots`, `tasks`, `settings`) terstruktur dengan foreign key cascade (`ON DELETE CASCADE` untuk slot, `ON DELETE SET NULL` untuk tugas dialihkan ke Mandiri sesuai PRD).
+  - Menjaga antarmuka tetap instan dan reaktif melalui background persistence non-blocking di `AppState`.
+
