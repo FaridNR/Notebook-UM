@@ -648,33 +648,76 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ),
                                 ],
                               ),
-                              GestureDetector(
-                                onTap: () => _onExportJson(context),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFFF4F4F5) : const Color(0xFF090A0C),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.download_rounded,
-                                        size: 13,
-                                        color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () async {
+                                      await widget.appState.resetToDefaultCourses();
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Jadwal resmi semester IFB5J berhasil dimuat ulang ke SQLite')),
+                                        );
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Ekspor JSON',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark ? const Color(0xFF090A0C) : Colors.white,
-                                        ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.sync_rounded,
+                                            size: 13,
+                                            color: textPrimary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Reset Jadwal IFB5J',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: textPrimary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
+                                  GestureDetector(
+                                    onTap: () => _onExportJson(context),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? const Color(0xFFF4F4F5) : const Color(0xFF090A0C),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.download_rounded,
+                                            size: 13,
+                                            color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Ekspor JSON',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
