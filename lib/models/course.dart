@@ -127,4 +127,27 @@ class Course {
         'tone': tone.name,
         'slots': slots.map((s) => s.toJson()).toList(),
       };
+
+  factory Course.fromJson(Map<String, dynamic> json) {
+    final toneStr = json['tone'] as String? ?? 'blue';
+    final tone = CourseTone.values.firstWhere(
+      (t) => t.name == toneStr,
+      orElse: () => CourseTone.blue,
+    );
+
+    final rawSlots = json['slots'] as List<dynamic>? ?? [];
+    final slots = rawSlots
+        .map((s) => ScheduleSlot.fromJson(s as Map<String, dynamic>))
+        .toList();
+
+    return Course(
+      id: json['id'] as String,
+      code: json['code'] as String,
+      name: json['name'] as String,
+      lecturer: json['lecturer'] as String,
+      sks: json['sks'] as int,
+      tone: tone,
+      slots: slots,
+    );
+  }
 }

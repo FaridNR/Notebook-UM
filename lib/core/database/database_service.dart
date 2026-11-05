@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -577,6 +578,47 @@ class DatabaseService {
       whereArgs: ['is_seeded'],
     );
     return rows.isNotEmpty && rows.first['value'] == '1';
+  }
+
+  Future<void> savePermanentCourses(List<Course> courses) async {
+    final jsonStr = jsonEncode(courses.map((c) => c.toJson()).toList());
+    await setSetting('saved_permanent_courses', jsonStr);
+  }
+
+  Future<List<Course>> getPermanentCourses() async {
+    final settings = await getAllSettings();
+    if (settings.containsKey('saved_permanent_courses')) {
+      try {
+        final raw = jsonDecode(settings['saved_permanent_courses']!) as List;
+        final list = raw.map((item) => Course.fromJson(item as Map<String, dynamic>)).toList();
+        if (list.isNotEmpty) return list;
+      } catch (_) {}
+    }
+    return initialCoursesData;
+  }
+
+  Future<void> resetToSavedPermanentCourses() async {
+    final targetCourses = await getPermanentCourses();
+    await clearAllData();
+    await seedInitialCourses(targetCourses);
+  }
+
+  Future<void> deleteAllCourses() async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.update(
+        'tasks',
+        {
+          'course_id': null,
+          'course_code': 'MANDIRI',
+          'course_name': 'Mandiri',
+          'due_mode': 'fixed',
+          'secondary_meta': 'Mandiri',
+        },
+      );
+      await txn.delete('schedule_slots');
+      await txn.delete('courses');
+    });
   }
 
   Future<void> resetToDefaultCourses() async {

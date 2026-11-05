@@ -591,6 +591,111 @@ class CoursesScreen extends StatelessWidget {
     );
   }
 
+  void _showSavePermanentConfirmDialog(BuildContext context) {
+    if (appState.courses.isEmpty) {
+      appState.showToast('Tidak ada mata kuliah untuk disimpan');
+      return;
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Simpan Matkul Tetap?',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: textPrimary),
+        ),
+        content: Text(
+          'Daftar ${appState.totalCourses} mata kuliah saat ini (${appState.totalSks} SKS) akan disimpan sebagai jadwal tetap Anda. Fitur "Reset Jadwal" di profil akan mengembalikan ke susunan mata kuliah ini.',
+          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Batal', style: TextStyle(color: textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await appState.saveCurrentCoursesAsPermanent();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${appState.totalCourses} mata kuliah berhasil disimpan sebagai jadwal tetap'),
+                    backgroundColor: AppColors.emeraldAccent,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.blueAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Simpan Tetap'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAllConfirmDialog(BuildContext context) {
+    if (appState.courses.isEmpty) {
+      appState.showToast('Daftar mata kuliah sudah kosong');
+      return;
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Hapus Seluruh Matkul?',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFFE11D48)),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus seluruh ${appState.totalCourses} mata kuliah dan seluruh slot jadwalnya? Catatan tugas terkait akan dialihkan ke Mandiri.',
+          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Batal', style: TextStyle(color: textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await appState.deleteAllCourses();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Seluruh mata kuliah berhasil dihapus'),
+                    backgroundColor: Color(0xFFE11D48),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE11D48),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Hapus Semua'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -636,36 +741,102 @@ class CoursesScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  GestureDetector(
-                    onTap: () => _showAddCourseSheet(context),
-                    child: Container(
-                      height: 36,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFFF4F4F5) : const Color(0xFF090A0C),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.add,
-                            size: 16,
-                            color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () => _showAddCourseSheet(context),
+                        child: Container(
+                          height: 36,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFFF4F4F5) : const Color(0xFF090A0C),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Tambah Matkul',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.add,
+                                size: 16,
+                                color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Tambah Matkul',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          popupMenuTheme: PopupMenuThemeData(
+                            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          tooltip: 'Opsi Mata Kuliah',
+                          icon: Container(
+                            height: 36,
+                            width: 36,
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF1E2430) : const Color(0xFFE5E8EC),
+                              ),
                             ),
+                            child: Icon(Icons.more_vert_rounded, size: 18, color: textPrimary),
                           ),
-                        ],
+                          onSelected: (val) {
+                            if (val == 'save_permanent') {
+                              _showSavePermanentConfirmDialog(context);
+                            } else if (val == 'delete_all') {
+                              _showDeleteAllConfirmDialog(context);
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            PopupMenuItem(
+                              value: 'save_permanent',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.bookmark_add_rounded, size: 18, color: AppColors.blueAccent),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Simpan Matkul Tetap',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuDivider(),
+                            PopupMenuItem(
+                              value: 'delete_all',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.delete_sweep_rounded, size: 18, color: Color(0xFFE11D48)),
+                                  const SizedBox(width: 10),
+                                  const Text(
+                                    'Hapus Seluruh Matkul',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFE11D48)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -760,6 +931,83 @@ class CoursesScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Quick Action Bar: Simpan Matkul Tetap & Hapus Seluruh Matkul
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _showSavePermanentConfirmDialog(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.bookmark_add_rounded, size: 15, color: AppColors.blueAccent),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'Simpan Tetap',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _showDeleteAllConfirmDialog(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF2D151B) : const Color(0xFFFFF1F2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF4C1D24) : const Color(0xFFFECDD3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.delete_sweep_rounded, size: 15, color: Color(0xFFE11D48)),
+                                const SizedBox(width: 6),
+                                const Flexible(
+                                  child: Text(
+                                    'Hapus Semua',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFFE11D48),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 14),

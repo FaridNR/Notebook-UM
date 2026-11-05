@@ -469,6 +469,39 @@ class AppState extends ChangeNotifier {
     unawaited(_dbService.clearAllData());
   }
 
+  Future<void> saveCurrentCoursesAsPermanent() async {
+    await _dbService.savePermanentCourses(_courses);
+    showToast('${_courses.length} matkul disimpan sebagai jadwal tetap');
+  }
+
+  Future<void> deleteAllCourses() async {
+    for (int i = 0; i < _tasks.length; i++) {
+      if (_tasks[i].courseId != null) {
+        final t = _tasks[i];
+        final newDueMode = (t.dueMode == DueMode.nextSession) ? DueMode.fixed : t.dueMode;
+        _tasks[i] = t.copyWith(
+          courseId: null,
+          courseCode: 'MANDIRI',
+          courseName: 'Mandiri',
+          dueMode: newDueMode,
+          secondaryMeta: 'Mandiri',
+        );
+      }
+    }
+    _courses = [];
+    notifyListeners();
+    showToast('Seluruh mata kuliah telah dihapus');
+    await _dbService.deleteAllCourses();
+  }
+
+  Future<void> resetToSavedPermanentCourses() async {
+    await _dbService.resetToSavedPermanentCourses();
+    _courses = await _dbService.getCourses();
+    _tasks = await _dbService.getTasks();
+    notifyListeners();
+    showToast('Jadwal berhasil direset ke matkul tetap');
+  }
+
   Future<void> resetToDefaultCourses() async {
     await _dbService.resetToDefaultCourses();
     _courses = await _dbService.getCourses();

@@ -344,5 +344,38 @@ void main() {
         }
       }
     });
+
+    test('7. FITUR MATKUL TETAP: Simpan matkul tetap, hapus seluruh matkul, dan reset jadwal mengembalikan matkul tetap yang disimpan', () async {
+      final dbService = DatabaseService.instance;
+      await dbService.init(path: inMemoryDatabasePath);
+
+      final appState = AppState(dbService: dbService);
+      await appState.loadDbFuture;
+
+      // 1. Simpan 8 matkul awal sebagai matkul tetap
+      await appState.saveCurrentCoursesAsPermanent();
+
+      // 2. Hapus seluruh matkul
+      await appState.deleteAllCourses();
+      expect(appState.courses.isEmpty, isTrue, reason: 'Seluruh mata kuliah berhasil dihapus');
+      expect(appState.totalCourses, 0);
+
+      // Verifikasi di SQLite courses benar-benar kosong
+      final dbCoursesAfterDelete = await dbService.getCourses();
+      expect(dbCoursesAfterDelete.isEmpty, isTrue);
+
+      // 3. Reset jadwal ke matkul tetap yang disimpan
+      await appState.resetToSavedPermanentCourses();
+
+      // Verifikasi 8 matkul kembali pulih dari template tetap
+      expect(appState.courses.length, 8, reason: 'Reset jadwal berhasil memulihkan 8 matkul tetap');
+      expect(appState.totalSks, 23);
+
+      final dbCoursesRestored = await dbService.getCourses();
+      expect(dbCoursesRestored.length, 8);
+
+      appState.dispose();
+      await dbService.close();
+    });
   });
 }

@@ -136,6 +136,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _showResetPermanentConfirmDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Reset Jadwal Kuliah?',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: textPrimary),
+        ),
+        content: Text(
+          'Jadwal akan direset kembali ke susunan mata kuliah tetap yang telah Anda simpan di tab Matkul (atau susunan resmi IFB5J jika belum pernah disimpan).',
+          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Batal', style: TextStyle(color: textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await widget.appState.resetToSavedPermanentCourses();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Jadwal kuliah berhasil direset ke susunan matkul tetap'),
+                    backgroundColor: AppColors.emeraldAccent,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.blueAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Reset Sekarang'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -622,62 +670,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: insetTone,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Row(
                                 children: [
-                                  Text(
-                                    'Ekspor File JSON Lengkap',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: textPrimary,
+                                  Icon(Icons.inventory_2_outlined, size: 16, color: textPrimary),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Manajemen & Pemulihan Jadwal',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${widget.appState.totalCourses} Matkul, ${widget.appState.totalSlots} Slot, ${widget.appState.tasks.length} Tugas',
-                                    style: TextStyle(fontSize: 10, color: textSecondary),
                                   ),
                                 ],
                               ),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
+                              const SizedBox(height: 4),
+                              Text(
+                                '${widget.appState.totalCourses} Matkul Terdaftar • ${widget.appState.totalSlots} Slot Jadwal • ${widget.appState.tasks.length} Catatan Tugas',
+                                style: TextStyle(fontSize: 11, color: textSecondary),
+                              ),
+                              const SizedBox(height: 12),
+                              // Action Buttons - Stacked with clean mobile responsive layout
+                              Column(
                                 children: [
                                   GestureDetector(
-                                    onTap: () async {
-                                      await widget.appState.resetToDefaultCourses();
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Jadwal resmi semester IFB5J berhasil dimuat ulang ke SQLite')),
-                                        );
-                                      }
-                                    },
+                                    onTap: () => _showResetPermanentConfirmDialog(context),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                       decoration: BoxDecoration(
                                         color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             Icons.sync_rounded,
-                                            size: 13,
+                                            size: 15,
                                             color: textPrimary,
                                           ),
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: 8),
                                           Text(
-                                            'Reset Jadwal IFB5J',
+                                            'Reset Jadwal ke Matkul Tetap',
                                             style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w700,
@@ -688,25 +733,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(height: 8),
                                   GestureDetector(
                                     onTap: () => _onExportJson(context),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                       decoration: BoxDecoration(
                                         color: isDark ? const Color(0xFFF4F4F5) : const Color(0xFF090A0C),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             Icons.download_rounded,
-                                            size: 13,
+                                            size: 15,
                                             color: isDark ? const Color(0xFF090A0C) : Colors.white,
                                           ),
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: 8),
                                           Text(
-                                            'Ekspor JSON',
+                                            'Ekspor File JSON Lengkap',
                                             style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w700,
