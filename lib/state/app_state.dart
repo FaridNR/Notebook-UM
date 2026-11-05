@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../core/database/database_helper.dart';
 import '../core/database/database_service.dart';
+import '../core/repository/app_repository.dart';
 import '../core/time/time_service.dart';
 import '../models/course.dart';
 import '../models/schedule_slot.dart';
@@ -69,14 +71,18 @@ class AppState extends ChangeNotifier {
   int get activeTasksCount => _tasks.where((t) => !t.isCompleted).length;
   int get completedTasksCount => _tasks.where((t) => t.isCompleted).length;
 
-  final DatabaseService _dbService;
+  final AppRepository _repository;
+  AppRepository get repository => _repository;
   bool _isDbLoaded = false;
   bool get isDbLoaded => _isDbLoaded;
 
   Future<void>? _loadDbFuture;
   Future<void> get loadDbFuture => _loadDbFuture ?? Future.value();
 
-  AppState({DatabaseService? dbService}) : _dbService = dbService ?? DatabaseService.instance {
+  AppState({AppRepository? repository, DatabaseHelper? dbHelper, DatabaseService? dbService})
+      : _repository = repository ??
+            dbService?.repo ??
+            AppRepository(dbHelper: dbHelper ?? dbService?.helper ?? DatabaseHelper.instance) {
     _liveNow = TimeService.nowInWita();
     _startMinuteTicker();
     _initializeData();
@@ -85,13 +91,13 @@ class AppState extends ChangeNotifier {
 
   Future<void> _loadFromDatabase() async {
     try {
-      // Seluruh data mata kuliah & jadwal dimuat langsung dari basis data SQLite
-      final loadedCourses = await _dbService.getCourses();
+      // Seluruh data mata kuliah & jadwal dimuat langsung dari Repository
+      final loadedCourses = await _repository.getCourses();
       _courses = loadedCourses;
 
-      // Selalu load seluruh catatan tugas & pengaturan dari database SQLite
-      final loadedTasks = await _dbService.getTasks();
-      final settings = await _dbService.getAllSettings();
+      // Selalu load seluruh catatan tugas & pengaturan dari database SQLite via Repository
+      final loadedTasks = await _repository.getTasks();
+      final settings = await _repository.getAllSettings();
 
       _tasks = loadedTasks;
 
@@ -108,7 +114,7 @@ class AppState extends ChangeNotifier {
       }
 
       _isDbLoaded = true;
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       debugPrint('Error loading from SQLite: $e');
     }
@@ -128,11 +134,20 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isDisposed = false;
+
   @override
   void dispose() {
+    _isDisposed = true;
     _minuteTicker?.cancel();
     _undoToastTimer?.cancel();
     super.dispose();
+  }
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   void _initializeData() {
@@ -190,7 +205,7 @@ class AppState extends ChangeNotifier {
   void toggleTheme() {
     _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     notifyListeners();
-    unawaited(_dbService.setSetting('theme_mode', _themeMode == ThemeMode.dark ? 'dark' : 'light'));
+    unawaited(_repository.setSetting('theme_mode', _themeMode == ThemeMode.dark ? 'dark' : 'light'));
   }
 
   void setTaskSearchQuery(String query) {
@@ -211,19 +226,19 @@ class AppState extends ChangeNotifier {
   void updateProfile({String? displayName, String? nim, String? prodi, String? timezone}) {
     if (displayName != null) {
       _displayName = displayName;
-      unawaited(_dbService.setSetting('display_name', displayName));
+      unawaited(_repository.setSetting('display_name', displayName));
     }
     if (nim != null) {
       _nim = nim;
-      unawaited(_dbService.setSetting('nim', nim));
+      unawaited(_repository.setSetting('nim', nim));
     }
     if (prodi != null) {
       _prodi = prodi;
-      unawaited(_dbService.setSetting('prodi', prodi));
+      unawaited(_repository.setSetting('prodi', prodi));
     }
     if (timezone != null) {
       _timezone = timezone;
-      unawaited(_dbService.setSetting('timezone', timezone));
+      unawaited(_repository.setSetting('timezone', timezone));
     }
     notifyListeners();
   }
@@ -231,13 +246,13 @@ class AppState extends ChangeNotifier {
   void logout() {
     _isLoggedIn = false;
     notifyListeners();
-    unawaited(_dbService.setSetting('is_logged_in', '0'));
+    unawaited(_repository.setSetting('is_logged_in', '0'));
   }
 
   void login(String email, String password) {
     _isLoggedIn = true;
     notifyListeners();
-    unawaited(_dbService.setSetting('is_logged_in', '1'));
+    unawaited(_repository.setSetting('is_logged_in', '1'));
   }
 
   // Task Completion & Undo
@@ -246,9 +261,9 @@ class AppState extends ChangeNotifier {
     if (index != -1) {
       final task = _tasks[index];
       final newStatus = !task.isCompleted;
-      task.isCompleted = newStatus;
-      _lastToggledTask = task;
-      unawaited(_dbService.updateTask(task));
+      final updated = task.copyWith(isCompleted: newStatus);
+      _tasks[index] = updated;
+      _lastToggledTask = updated;
 
       _undoToastMessage = newStatus ? '1 tugas ditandai selesai' : '1 tugas dibuka kembali';
       _showUndoToast = true;
@@ -258,33 +273,34 @@ class AppState extends ChangeNotifier {
       _undoToastTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_undoCountdown > 1) {
           _undoCountdown--;
-          notifyListeners();
+          _safeNotifyListeners();
         } else {
           _showUndoToast = false;
           _lastToggledTask = null;
           timer.cancel();
           _undoToastTimer = null;
-          notifyListeners();
+          _safeNotifyListeners();
         }
       });
 
-      notifyListeners();
+      _safeNotifyListeners();
+      unawaited(_repository.updateTask(updated));
     }
   }
 
   void undoLastAction() {
+    _showUndoToast = false;
+    _undoToastTimer?.cancel();
+    _undoToastTimer = null;
     if (_lastToggledTask != null) {
       final index = _tasks.indexWhere((t) => t.id == _lastToggledTask!.id);
       if (index != -1) {
         _tasks[index].isCompleted = !_tasks[index].isCompleted;
-        unawaited(_dbService.updateTask(_tasks[index]));
+        unawaited(_repository.updateTask(_tasks[index]));
       }
       _lastToggledTask = null;
     }
-    _showUndoToast = false;
-    _undoToastTimer?.cancel();
-    _undoToastTimer = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void dismissUndoToast() {
@@ -292,7 +308,7 @@ class AppState extends ChangeNotifier {
     _lastToggledTask = null;
     _undoToastTimer?.cancel();
     _undoToastTimer = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void showToast(String message) {
@@ -304,63 +320,71 @@ class AppState extends ChangeNotifier {
     _undoToastTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_undoCountdown > 1) {
         _undoCountdown--;
-        notifyListeners();
+        _safeNotifyListeners();
       } else {
         _showUndoToast = false;
         timer.cancel();
         _undoToastTimer = null;
-        notifyListeners();
+        _safeNotifyListeners();
       }
     });
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
-  // --- Task CRUD ---
-  void addTask(CourseTask newTask) {
+  // --- Task CRUD: UI -> ViewModel -> Repository -> SQLite -> Reload & Notify ---
+
+  Future<void> addTask(CourseTask newTask) async {
     _tasks.insert(0, newTask);
-    notifyListeners();
-    unawaited(_dbService.insertTask(newTask));
+    _safeNotifyListeners();
+    await _repository.insertTask(newTask);
+    _tasks = await _repository.getTasks();
+    _safeNotifyListeners();
   }
 
-  void updateTask(CourseTask updatedTask) {
+  Future<void> updateTask(CourseTask updatedTask) async {
     final idx = _tasks.indexWhere((t) => t.id == updatedTask.id);
     if (idx != -1) {
       _tasks[idx] = updatedTask;
-      notifyListeners();
-      unawaited(_dbService.updateTask(updatedTask));
+      _safeNotifyListeners();
     }
+    await _repository.updateTask(updatedTask);
+    _tasks = await _repository.getTasks();
+    _safeNotifyListeners();
   }
 
-  void deleteTask(String taskId) {
+  Future<void> deleteTask(String taskId) async {
     _tasks.removeWhere((t) => t.id == taskId);
     showToast('Tugas telah dihapus');
-    unawaited(_dbService.deleteTask(taskId));
+    _safeNotifyListeners();
+    await _repository.deleteTask(taskId);
+    _tasks = await _repository.getTasks();
+    _safeNotifyListeners();
   }
 
   // --- Course CRUD ---
-  void addCourse(Course course) {
+
+  Future<void> addCourse(Course course) async {
     _courses.add(course);
-    notifyListeners();
-    unawaited(_dbService.insertCourse(course));
+    _safeNotifyListeners();
+    await _repository.insertCourse(course);
+    _courses = await _repository.getCourses();
+    _safeNotifyListeners();
   }
 
-  void updateCourse(Course updatedCourse) {
+  Future<void> updateCourse(Course updatedCourse) async {
     final idx = _courses.indexWhere((c) => c.id == updatedCourse.id);
     if (idx != -1) {
       _courses[idx] = updatedCourse;
       _recalculateNextSessionTasks(updatedCourse.id);
-      notifyListeners();
-      unawaited(_dbService.updateCourse(updatedCourse));
+      _safeNotifyListeners();
     }
+    await _repository.updateCourse(updatedCourse);
+    _courses = await _repository.getCourses();
+    _safeNotifyListeners();
   }
 
-  /// PRD Section 4.3 rule:
-  /// "Saat mata kuliah dihapus, tugas next_session miliknya diubah menjadi
-  /// fixed dengan due_at terakhir, karena course_id menjadi null."
-  void deleteCourse(String courseId) {
+  Future<void> deleteCourse(String courseId) async {
     _courses.removeWhere((c) => c.id == courseId);
-
-    // Update tasks referencing this course
     for (int i = 0; i < _tasks.length; i++) {
       if (_tasks[i].courseId == courseId) {
         final t = _tasks[i];
@@ -375,47 +399,36 @@ class AppState extends ChangeNotifier {
       }
     }
     showToast('Mata kuliah dihapus, tugas dialihkan ke mandiri');
-    unawaited(_dbService.deleteCourse(courseId));
+    _safeNotifyListeners();
+    await _repository.deleteCourse(courseId);
+    _courses = await _repository.getCourses();
+    _tasks = await _repository.getTasks();
+    _safeNotifyListeners();
   }
 
   // --- Schedule Slots CRUD ---
-  void addSlot(String courseId, ScheduleSlot slot) {
-    final idx = _courses.indexWhere((c) => c.id == courseId);
-    if (idx != -1) {
-      final updatedSlots = List<ScheduleSlot>.from(_courses[idx].slots)..add(slot);
-      _courses[idx] = _courses[idx].copyWith(slots: updatedSlots);
-      _recalculateNextSessionTasks(courseId);
-      notifyListeners();
-      unawaited(_dbService.insertSlot(slot));
-    }
+
+  Future<void> addSlot(String courseId, ScheduleSlot slot) async {
+    await _repository.insertSlot(slot);
+    _courses = await _repository.getCourses();
+    _recalculateNextSessionTasks(courseId);
+    notifyListeners();
   }
 
-  void updateSlot(String courseId, ScheduleSlot updatedSlot) {
-    final idx = _courses.indexWhere((c) => c.id == courseId);
-    if (idx != -1) {
-      final updatedSlots = _courses[idx].slots.map((s) => s.id == updatedSlot.id ? updatedSlot : s).toList();
-      _courses[idx] = _courses[idx].copyWith(slots: updatedSlots);
-      _recalculateNextSessionTasks(courseId);
-      notifyListeners();
-      unawaited(_dbService.updateSlot(updatedSlot));
-    }
+  Future<void> updateSlot(String courseId, ScheduleSlot updatedSlot) async {
+    await _repository.updateSlot(updatedSlot);
+    _courses = await _repository.getCourses();
+    _recalculateNextSessionTasks(courseId);
+    notifyListeners();
   }
 
-  void deleteSlot(String courseId, String slotId) {
-    final idx = _courses.indexWhere((c) => c.id == courseId);
-    if (idx != -1) {
-      final updatedSlots = _courses[idx].slots.where((s) => s.id != slotId).toList();
-      _courses[idx] = _courses[idx].copyWith(slots: updatedSlots);
-      _recalculateNextSessionTasks(courseId);
-      notifyListeners();
-      unawaited(_dbService.deleteSlot(slotId));
-    }
+  Future<void> deleteSlot(String courseId, String slotId) async {
+    await _repository.deleteSlot(slotId);
+    _courses = await _repository.getCourses();
+    _recalculateNextSessionTasks(courseId);
+    notifyListeners();
   }
 
-  /// PRD Section 1.5 Flow D & Section 1.7:
-  /// "Pengguna mengubah atau menghapus slot, lalu tenggat tugas next_session
-  /// yang belum selesai dan belum lewat dihitung ulang. Tampilkan toast
-  /// '2 tugas disesuaikan dengan jadwal baru'."
   void _recalculateNextSessionTasks(String courseId) {
     final course = getCourse(courseId);
     if (course == null) return;
@@ -426,7 +439,6 @@ class AppState extends ChangeNotifier {
     for (int i = 0; i < _tasks.length; i++) {
       final t = _tasks[i];
       if (t.courseId == courseId && t.dueMode == DueMode.nextSession && !t.isCompleted) {
-        // If not expired
         if (t.dueAt == null || t.dueAt!.isAfter(now)) {
           final nextDue = TimeService.calculateNextSession(
             createdAt: t.createdAt ?? now,
@@ -439,7 +451,7 @@ class AppState extends ChangeNotifier {
               dueText: TimeService.formatNextSessionText(nextDue),
             );
             adjustedCount++;
-            unawaited(_dbService.updateTask(_tasks[i]));
+            unawaited(_repository.updateTask(_tasks[i]));
           }
         }
       }
@@ -453,59 +465,47 @@ class AppState extends ChangeNotifier {
   void toggleReminderH24() {
     _isReminderH24 = !_isReminderH24;
     notifyListeners();
-    unawaited(_dbService.setSetting('is_reminder_h24', _isReminderH24 ? '1' : '0'));
+    unawaited(_repository.setSetting('is_reminder_h24', _isReminderH24 ? '1' : '0'));
   }
 
   void toggleReminderH1() {
     _isReminderH1 = !_isReminderH1;
     notifyListeners();
-    unawaited(_dbService.setSetting('is_reminder_h1', _isReminderH1 ? '1' : '0'));
+    unawaited(_repository.setSetting('is_reminder_h1', _isReminderH1 ? '1' : '0'));
   }
 
   void clearAllData() {
     _courses = [];
     _tasks = [];
     notifyListeners();
-    unawaited(_dbService.clearAllData());
+    unawaited(_repository.clearAllData());
   }
 
   Future<void> saveCurrentCoursesAsPermanent() async {
-    await _dbService.savePermanentCourses(_courses);
+    await _repository.savePermanentCourses(_courses);
     showToast('${_courses.length} matkul disimpan sebagai jadwal tetap');
   }
 
   Future<void> deleteAllCourses() async {
-    for (int i = 0; i < _tasks.length; i++) {
-      if (_tasks[i].courseId != null) {
-        final t = _tasks[i];
-        final newDueMode = (t.dueMode == DueMode.nextSession) ? DueMode.fixed : t.dueMode;
-        _tasks[i] = t.copyWith(
-          courseId: null,
-          courseCode: 'MANDIRI',
-          courseName: 'Mandiri',
-          dueMode: newDueMode,
-          secondaryMeta: 'Mandiri',
-        );
-      }
-    }
-    _courses = [];
+    await _repository.deleteAllCourses();
+    _courses = await _repository.getCourses();
+    _tasks = await _repository.getTasks();
     notifyListeners();
     showToast('Seluruh mata kuliah telah dihapus');
-    await _dbService.deleteAllCourses();
   }
 
   Future<void> resetToSavedPermanentCourses() async {
-    await _dbService.resetToSavedPermanentCourses();
-    _courses = await _dbService.getCourses();
-    _tasks = await _dbService.getTasks();
+    await _repository.resetToSavedPermanentCourses();
+    _courses = await _repository.getCourses();
+    _tasks = await _repository.getTasks();
     notifyListeners();
     showToast('Jadwal berhasil direset ke matkul tetap');
   }
 
   Future<void> resetToDefaultCourses() async {
-    await _dbService.resetToDefaultCourses();
-    _courses = await _dbService.getCourses();
-    _tasks = await _dbService.getTasks();
+    await _repository.resetToDefaultCourses();
+    _courses = await _repository.getCourses();
+    _tasks = await _repository.getTasks();
     notifyListeners();
   }
 

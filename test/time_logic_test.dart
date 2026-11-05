@@ -1,10 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:notebook_um/core/database/database_helper.dart';
 import 'package:notebook_um/core/time/time_service.dart';
 import 'package:notebook_um/models/schedule_slot.dart';
 import 'package:notebook_um/models/task.dart';
 import 'package:notebook_um/state/app_state.dart';
 
 void main() {
+  setUpAll(() {
+    DatabaseHelper.setupDatabaseFactory(noIsolate: true);
+  });
   group('TimeService - getClassStatus (PRD Section 1.7)', () {
     const slot = ScheduleSlot(
       id: 'slot-test-1',

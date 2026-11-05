@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'core/database/database_service.dart';
+import 'core/database/database_helper.dart';
 import 'screens/auth_screen.dart';
 import 'screens/today_screen.dart';
 import 'screens/schedule_screen.dart';
@@ -16,7 +16,7 @@ import 'widgets/undo_toast.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  DatabaseService.setupDatabaseFactory();
+  DatabaseHelper.setupDatabaseFactory();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:notebook_um/core/database/database_helper.dart';
 import 'package:notebook_um/core/database/database_service.dart';
+import 'package:notebook_um/core/repository/app_repository.dart';
 import 'package:notebook_um/models/course.dart';
 import 'package:notebook_um/models/schedule_slot.dart';
 import 'package:notebook_um/models/task.dart';
@@ -281,15 +283,15 @@ void main() {
           dueAt: DateTime(2026, 11, 8, 23, 59),
           dueText: '8 Nov, 23:59 WITA',
         );
-        appStateSession1.addTask(newTask);
+        await appStateSession1.addTask(newTask);
 
         // PENGGUNA MENGHAPUS MATA KULIAH KRIPTOGRAFI (course-110700)
-        appStateSession1.deleteCourse('course-110700');
+        await appStateSession1.deleteCourse('course-110700');
         expect(appStateSession1.courses.length, 7, reason: 'Sesi 1: Tersisa 7 mata kuliah setelah Kriptografi dihapus');
         expect(appStateSession1.courses.any((c) => c.id == 'course-110700'), isFalse);
 
         // PENGGUNA MENGHAPUS 1 SLOT JADWAL DARI SMBD (slot-111500)
-        appStateSession1.deleteSlot('course-111500', 'slot-111500');
+        await appStateSession1.deleteSlot('course-111500', 'slot-111500');
         final smbdCourse = appStateSession1.courses.firstWhere((c) => c.id == 'course-111500');
         expect(smbdCourse.slots.isEmpty, isTrue, reason: 'Slot SMBD berhasil dihapus');
 
@@ -376,6 +378,61 @@ void main() {
 
       appState.dispose();
       await dbService.close();
+    });
+
+    test('8. ARSITEKTUR BERLAPIS: UI -> ViewModel (ChangeNotifier) -> Repository -> DatabaseHelper (sqflite) -> SQLite', () async {
+      final dbHelper = DatabaseHelper.instance;
+      await dbHelper.init(path: inMemoryDatabasePath);
+
+      final repository = AppRepository(dbHelper: dbHelper);
+      final viewModel = AppState(repository: repository);
+      await viewModel.loadDbFuture;
+
+      int notifyCount = 0;
+      viewModel.addListener(() {
+        notifyCount++;
+      });
+
+      // 1. Tambah Catatan Tugas
+      final task = CourseTask(
+        id: 'task-arch-01',
+        title: 'Tugas SMBD Relasional',
+        notes: 'Catatan awal: buat tabel 3NF',
+        courseId: 'course-111500',
+        courseCode: '111500',
+        courseName: 'Sistem Manajemen Basis Data',
+        priority: TaskPriority.high,
+        dueCategory: TaskDueCategory.urgent,
+        dueText: 'Besok, 20:00 WITA',
+      );
+      await viewModel.addTask(task);
+
+      expect(viewModel.tasks.length, 1);
+      expect(viewModel.tasks.first.title, 'Tugas SMBD Relasional');
+      expect(notifyCount > 0, isTrue, reason: 'ViewModel harus memberitahukan perubahan kepada UI');
+
+      // 2. Saat pengguna mengubah catatan:
+      // UI meminta aksi ke ViewModel -> repository menjalankan query -> ViewModel memuat ulang daftar & memberitahukan UI
+      final initialNotifies = notifyCount;
+      final updatedTask = task.copyWith(
+        notes: 'Catatan diperbarui: ERD & Relasi 3NF selesai',
+        priority: TaskPriority.medium,
+      );
+
+      await viewModel.updateTask(updatedTask);
+
+      // Verifikasi query dijalankan repository dan tersimpan di basis data SQLite fisik
+      final dbTasks = await repository.getTasks();
+      expect(dbTasks.first.notes, 'Catatan diperbarui: ERD & Relasi 3NF selesai');
+      expect(dbTasks.first.priority, TaskPriority.medium);
+
+      // Verifikasi ViewModel memuat ulang daftar dan memberitahukan UI
+      expect(viewModel.tasks.first.notes, 'Catatan diperbarui: ERD & Relasi 3NF selesai');
+      expect(viewModel.tasks.first.priority, TaskPriority.medium);
+      expect(notifyCount > initialNotifies, isTrue, reason: 'ViewModel harus memicu notifikasi UI saat data diubah');
+
+      viewModel.dispose();
+      await dbHelper.close();
     });
   });
 }

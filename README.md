@@ -55,9 +55,33 @@ Persistensi data didukung penuh secara luring (*offline-first*) menggunakan basi
 
 ---
 
-## 💾 Arsitektur Basis Data SQLite (sqflite)
+## 💾 Arsitektur Berlapis (Layered Pattern) & Basis Data SQLite
 
-Aplikasi beroperasi secara *offline-first* murni tanpa ketergantungan *in-memory hardcoding*:
+Aplikasi beroperasi secara *offline-first* murni dengan pemisahan tanggung jawab yang tegas:
+```
+UI (Screens / Widgets)
+       │
+       ▼ (Meminta aksi / perubahan catatan)
+ViewModel (AppState : ChangeNotifier)
+       │
+       ▼ (Menjalankan query & pemetaan domain)
+Repository (AppRepository)
+       │
+       ▼ (Koneksi, DDL, lifecycle & driver sqflite)
+DatabaseHelper (DatabaseHelper)
+       │
+       ▼
+SQLite Database (Disk Persistence)
+```
+
+Alur Reaktivitas:
+1. **UI** meminta aksi (misal ubah catatan, tambah tugas, kelola matkul) ke **ViewModel (`AppState`)**.
+2. **ViewModel** meneruskan pemanggilan ke **Repository (`AppRepository`)**.
+3. **Repository** mengeksekusi kueri transaksi ke basis data via **`DatabaseHelper` (sqflite)**.
+4. **ViewModel** memuat ulang daftar data terbaru dari Repository dan memanggil `notifyListeners()`.
+5. **UI** secara reaktif menerima notifikasi dan langsung memperbarui tampilan secara otomatis.
+
+Struktur Tabel SQLite:
 - **Tabel `courses`**: Menyimpan ID, kode mata kuliah, nama, dosen pengampu, bobot SKS, dan identitas warna (*tone*).
 - **Tabel `schedule_slots`**: Menyimpan slot jadwal kuliah (hari, jam mulai, jam selesai, ruang kelas) dengan relasi `FOREIGN KEY (course_id) ON DELETE CASCADE`.
 - **Tabel `tasks`**: Menyimpan seluruh catatan tugas, catatan progres, prioritas, status selesai, mode tenggat, dan `due_at`.
@@ -72,7 +96,10 @@ Aplikasi beroperasi secara *offline-first* murni tanpa ketergantungan *in-memory
 ├── lib/
 │   ├── core/
 │   │   ├── database/
-│   │   │   └── database_service.dart   # Service SQLite (CRUD Course, Slot, Task, Settings, Seed)
+│   │   │   ├── database_helper.dart    # DatabaseHelper (sqflite connection, schema, lifecycle, FFI)
+│   │   │   └── database_service.dart   # Service adapter delegator
+│   │   ├── repository/
+│   │   │   └── app_repository.dart     # AppRepository (Query CRUD, domain mapping, transactions)
 │   │   └── time/
 │   │       └── time_service.dart       # Logika getClassStatus, calculateNextSession, zona WITA
 │   ├── data/
@@ -82,7 +109,7 @@ Aplikasi beroperasi secara *offline-first* murni tanpa ketergantungan *in-memory
 │   │   ├── schedule_slot.dart          # Model Slot Jadwal mingguan (toJson & fromJson)
 │   │   └── task.dart                   # Model Tugas & 3 mode tenggat
 │   ├── state/
-│   │   └── app_state.dart              # Reaktif AppState (ChangeNotifier) terhubung penuh ke SQLite
+│   │   └── app_state.dart              # ViewModel (ChangeNotifier) terhubung ke AppRepository
 │   ├── theme/
 │   │   └── app_theme.dart              # Tone step colors & tema Material 3
 │   ├── widgets/
@@ -117,7 +144,7 @@ Jalankan pemeriksaan lint dan analisa kode (0 warning / clean):
 flutter analyze
 ```
 
-Jalankan seluruh rangkaian pengujian (28 tests passed 100%):
+Jalankan seluruh rangkaian pengujian (29 tests passed 100%):
 ```bash
 flutter test
 ```
