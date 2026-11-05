@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -18,32 +19,25 @@ class DockNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final borderColor = isDark ? const Color(0xFF1E2433) : const Color(0xFFE2E8F0);
     final activeTextColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final inactiveTextColor = isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
 
     final isCenterActive = selectedIndex == 2;
+    // Warna tombol tengah diselaraskan dengan palet utama aplikasi (obsidian / ivory)
+    final centerButtonBg = isDark ? const Color(0xFFF4F4F5) : const Color(0xFF090A0C);
+    final centerButtonFg = isDark ? const Color(0xFF090A0C) : Colors.white;
 
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.bottomCenter,
       children: [
-        // Symmetrical Flat Navigation Bar
-        Container(
-          decoration: BoxDecoration(
-            color: surfaceColor.withValues(alpha: 0.98),
-            border: Border(
-              top: BorderSide(
-                color: isDark ? const Color(0xFF1E2433) : const Color(0xFFE2E8F0),
-                width: 1,
-              ),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, -3),
-              ),
-            ],
+        // Navigation Bar berlekuk halus (notched curve) yang melengkung mengikuti lingkaran ikon Tugas
+        CustomPaint(
+          painter: NotchedDockPainter(
+            surfaceColor: surfaceColor,
+            borderColor: borderColor,
+            isDark: isDark,
           ),
           child: SafeArea(
             top: false,
@@ -72,7 +66,7 @@ class DockNavigation extends StatelessWidget {
                     inactiveColor: inactiveTextColor,
                     isDark: isDark,
                   ),
-                  // Space reserved for the protruding center DANA-style button
+                  // Ruang di tengah khusus untuk lengkungan tombol Tugas
                   const SizedBox(width: 68),
                   _buildNavItem(
                     index: 3,
@@ -100,7 +94,7 @@ class DockNavigation extends StatelessWidget {
           ),
         ),
 
-        // Prominent Center Button (DANA Style - Floating Action Button for Tugas)
+        // Tombol Tengah Tugas dengan warna yang serasi dengan identitas aplikasi NoteBook UM
         Positioned(
           top: -18,
           child: GestureDetector(
@@ -116,17 +110,17 @@ class DockNavigation extends StatelessWidget {
               width: 58,
               height: 58,
               decoration: BoxDecoration(
-                color: const Color(0xFF118EEA), // DANA Iconic Primary Blue
+                color: centerButtonBg,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isCenterActive
-                      ? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF93C5FD))
+                      ? (isDark ? Colors.white : const Color(0xFF2563EB))
                       : surfaceColor,
                   width: 3.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF118EEA).withValues(alpha: 0.45),
+                    color: (isDark ? Colors.black : const Color(0xFF090A0C)).withValues(alpha: 0.28),
                     blurRadius: 14,
                     offset: const Offset(0, 5),
                   ),
@@ -134,19 +128,19 @@ class DockNavigation extends StatelessWidget {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(
                     Icons.task_alt_rounded,
                     size: 21,
-                    color: Colors.white,
+                    color: centerButtonFg,
                   ),
-                  SizedBox(height: 1),
+                  const SizedBox(height: 1),
                   Text(
                     'Tugas',
                     style: TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: centerButtonFg,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -215,5 +209,100 @@ class DockNavigation extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// CustomPainter untuk menggambar garis tepi dan permukaan dock yang melengkung
+/// mengikuti kontur lingkaran tombol Tugas di tengah secara presisi dan mulus.
+class NotchedDockPainter extends CustomPainter {
+  final Color surfaceColor;
+  final Color borderColor;
+  final bool isDark;
+
+  const NotchedDockPainter({
+    required this.surfaceColor,
+    required this.borderColor,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final host = Rect.fromLTWH(0, 0, size.width, size.height);
+    final guestCenter = Offset(size.width / 2, 11);
+    const r = 35.0; // Radius lekukan (radius tombol 29 + margin lekukan 6)
+    const s1 = 14.0;
+    const s2 = 2.0;
+
+    final double a = -r - s2;
+    final double b = host.top - guestCenter.dy;
+
+    final double n2 = math.sqrt(b * b * r * r * (a * a + b * b - r * r));
+    final double p2xA = ((a * r * r) - n2) / (a * a + b * b);
+    final double p2xB = ((a * r * r) + n2) / (a * a + b * b);
+    final double p2yA = math.sqrt(r * r - p2xA * p2xA);
+    final double p2yB = math.sqrt(r * r - p2xB * p2xB);
+
+    final p = List<Offset>.filled(6, Offset.zero);
+    p[0] = Offset(a - s1, b);
+    p[1] = Offset(a, b);
+    final cmp = b < 0 ? -1.0 : 1.0;
+    p[2] = cmp * p2yA > cmp * p2yB ? Offset(p2xA, p2yA) : Offset(p2xB, p2yB);
+
+    p[3] = Offset(-1.0 * p[2].dx, p[2].dy);
+    p[4] = Offset(-1.0 * p[1].dx, p[1].dy);
+    p[5] = Offset(-1.0 * p[0].dx, p[0].dy);
+
+    for (var i = 0; i < p.length; i += 1) {
+      p[i] += guestCenter;
+    }
+
+    // Path permukaan yang diisi warna background dock
+    final fillPath = Path()
+      ..moveTo(host.left, host.top)
+      ..lineTo(p[0].dx, p[0].dy)
+      ..quadraticBezierTo(p[1].dx, p[1].dy, p[2].dx, p[2].dy)
+      ..arcToPoint(p[3], radius: const Radius.circular(r), clockwise: false)
+      ..quadraticBezierTo(p[4].dx, p[4].dy, p[5].dx, p[5].dy)
+      ..lineTo(host.right, host.top)
+      ..lineTo(host.right, host.bottom)
+      ..lineTo(host.left, host.bottom)
+      ..close();
+
+    // Path garis atas dock yang melengkung mengikuti lekukan
+    final borderPath = Path()
+      ..moveTo(host.left, host.top)
+      ..lineTo(p[0].dx, p[0].dy)
+      ..quadraticBezierTo(p[1].dx, p[1].dy, p[2].dx, p[2].dy)
+      ..arcToPoint(p[3], radius: const Radius.circular(r), clockwise: false)
+      ..quadraticBezierTo(p[4].dx, p[4].dy, p[5].dx, p[5].dy)
+      ..lineTo(host.right, host.top);
+
+    // Efek bayangan halus dock
+    canvas.drawShadow(
+      fillPath,
+      Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+      6.0,
+      false,
+    );
+
+    // Gambar background permukaan
+    final fillPaint = Paint()
+      ..color = surfaceColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(fillPath, fillPaint);
+
+    // Gambar garis batas atas yang melengkung
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(borderPath, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant NotchedDockPainter oldDelegate) {
+    return oldDelegate.surfaceColor != surfaceColor ||
+        oldDelegate.borderColor != borderColor ||
+        oldDelegate.isDark != isDark;
   }
 }
