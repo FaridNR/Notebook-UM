@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notebook_um/core/database/database_service.dart';
 import 'package:notebook_um/models/course.dart';
@@ -13,7 +12,7 @@ void main() {
     DatabaseService.setupDatabaseFactory();
   });
 
-  group('DatabaseService Direct CRUD Tests', () {
+  group('DatabaseService Direct CRUD & Seed Tests', () {
     late DatabaseService dbService;
 
     setUp(() async {
@@ -26,85 +25,68 @@ void main() {
       await dbService.close();
     });
 
-    test('1. CREATE & READ: Mata kuliah beserta slot jadwal bertingkat', () async {
-      final course = Course(
-        id: 'c-smbd',
-        code: '111500',
-        name: 'Sistem Manajemen Basis Data',
-        lecturer: 'Nasruddin Bin Idris, S.Kom., M.Kom.',
+    test('0. DEFAULT SEED SQLITE: Saat database dibuat (instalasi baru), 8 mata kuliah & jadwal langsung ada di SQLite', () async {
+      final courses = await dbService.getCourses();
+      expect(courses.length, 8, reason: 'Database SQLite harus memuat 8 mata kuliah default IFB5J saat dibuat');
+
+      final totalSks = courses.fold(0, (sum, c) => sum + c.sks);
+      expect(totalSks, 23, reason: 'Total SKS 8 mata kuliah default harus 23 SKS');
+
+      final totalSlots = courses.fold(0, (sum, c) => sum + c.slots.length);
+      expect(totalSlots, 8, reason: 'Total slot jadwal awal harus 8 slot');
+
+      final isSeeded = await dbService.isInitialSeeded();
+      expect(isSeeded, isTrue, reason: 'Flag is_seeded harus bernilai 1 di settings');
+    });
+
+    test('1. CREATE & READ: Tambah mata kuliah kustom beserta slot jadwal ke SQLite', () async {
+      const customCourse = Course(
+        id: 'c-cloud',
+        code: '111800',
+        name: 'Komputasi Awan (Cloud Computing)',
+        lecturer: 'Drs. Cloud Expert, M.Kom.',
         sks: 3,
-        tone: CourseTone.amber,
-        slots: const [
+        tone: CourseTone.emerald,
+        slots: [
           ScheduleSlot(
-            id: 'slot-smbd-1',
-            courseId: 'c-smbd',
-            courseCode: '111500',
-            courseName: 'Sistem Manajemen Basis Data',
-            day: 1,
-            dayName: 'Senin',
-            startTime: '19:00',
-            endTime: '20:30',
-            room: 'LAB B (FIKOM)',
-            durationMinutes: 90,
-          ),
-          ScheduleSlot(
-            id: 'slot-smbd-2',
-            courseId: 'c-smbd',
-            courseCode: '111500',
-            courseName: 'Sistem Manajemen Basis Data',
+            id: 'slot-cloud-1',
+            courseId: 'c-cloud',
+            courseCode: '111800',
+            courseName: 'Komputasi Awan (Cloud Computing)',
             day: 4,
             dayName: 'Kamis',
-            startTime: '19:00',
-            endTime: '20:30',
-            room: 'LAB B (FIKOM)',
+            startTime: '20:30',
+            endTime: '22:00',
+            room: 'LAB CLOUD 202',
             durationMinutes: 90,
           ),
         ],
       );
 
       // Create
-      await dbService.insertCourse(course);
+      await dbService.insertCourse(customCourse);
 
       // Read
       final courses = await dbService.getCourses();
-      expect(courses.length, 1);
-      final readCourse = courses.first;
-      expect(readCourse.id, 'c-smbd');
-      expect(readCourse.code, '111500');
+      expect(courses.length, 9, reason: '8 default + 1 kustom = 9 mata kuliah');
+
+      final readCourse = courses.firstWhere((c) => c.id == 'c-cloud');
+      expect(readCourse.code, '111800');
+      expect(readCourse.name, 'Komputasi Awan (Cloud Computing)');
       expect(readCourse.sks, 3);
-      expect(readCourse.tone, CourseTone.amber);
-      expect(readCourse.slots.length, 2);
-      expect(readCourse.slots[0].dayName, 'Senin');
-      expect(readCourse.slots[1].dayName, 'Kamis');
+      expect(readCourse.tone, CourseTone.emerald);
+      expect(readCourse.slots.length, 1);
+      expect(readCourse.slots.first.dayName, 'Kamis');
+      expect(readCourse.slots.first.room, 'LAB CLOUD 202');
+      expect(readCourse.slots.first.startTime, '20:30');
     });
 
-    test('2. UPDATE & READ: Perubahan data mata kuliah dan slot jadwal', () async {
-      final course = Course(
-        id: 'c-tab',
-        code: '111600',
-        name: 'Teknologi Aplikasi Bergerak',
-        lecturer: 'Istia Budi, S.T., M.M.',
-        sks: 3,
-        tone: CourseTone.blue,
-        slots: const [
-          ScheduleSlot(
-            id: 'slot-tab-1',
-            courseId: 'c-tab',
-            courseCode: '111600',
-            courseName: 'Teknologi Aplikasi Bergerak',
-            day: 1,
-            dayName: 'Senin',
-            startTime: '20:30',
-            endTime: '22:00',
-            room: 'LAB A (FIKOM)',
-            durationMinutes: 90,
-          ),
-        ],
-      );
-      await dbService.insertCourse(course);
+    test('2. UPDATE & READ: Perubahan data mata kuliah dan slot jadwal di SQLite', () async {
+      final initialCourses = await dbService.getCourses();
+      final targetCourse = initialCourses.firstWhere((c) => c.id == 'course-111600');
 
       // Update Course
-      final updatedCourse = course.copyWith(
+      final updatedCourse = targetCourse.copyWith(
         name: 'Teknologi Aplikasi Bergerak (Lanjut)',
         sks: 4,
         tone: CourseTone.emerald,
@@ -113,8 +95,8 @@ void main() {
 
       // Update Slot
       const updatedSlot = ScheduleSlot(
-        id: 'slot-tab-1',
-        courseId: 'c-tab',
+        id: 'slot-111600',
+        courseId: 'course-111600',
         courseCode: '111600',
         courseName: 'Teknologi Aplikasi Bergerak (Lanjut)',
         day: 2,
@@ -128,15 +110,16 @@ void main() {
 
       // Verify Read
       final courses = await dbService.getCourses();
-      expect(courses.first.name, 'Teknologi Aplikasi Bergerak (Lanjut)');
-      expect(courses.first.sks, 4);
-      expect(courses.first.tone, CourseTone.emerald);
-      expect(courses.first.slots.first.dayName, 'Selasa');
-      expect(courses.first.slots.first.room, 'LAB MOBILE 101');
-      expect(courses.first.slots.first.durationMinutes, 120);
+      final readUpdated = courses.firstWhere((c) => c.id == 'course-111600');
+      expect(readUpdated.name, 'Teknologi Aplikasi Bergerak (Lanjut)');
+      expect(readUpdated.sks, 4);
+      expect(readUpdated.tone, CourseTone.emerald);
+      expect(readUpdated.slots.first.dayName, 'Selasa');
+      expect(readUpdated.slots.first.room, 'LAB MOBILE 101');
+      expect(readUpdated.slots.first.durationMinutes, 120);
     });
 
-    test('3. CRUD TUGAS: Create multi-task, Update status/tenggat, Delete task', () async {
+    test('3. CRUD TUGAS: Create multi-task, Update status/tenggat, Delete task di SQLite', () async {
       // Create 3 tasks
       final task1 = CourseTask(
         id: 't-01',
@@ -211,34 +194,11 @@ void main() {
     });
 
     test('4. CASCADE DELETE: Hapus matkul otomatis menghapus slot & mengalihkan tugas ke Mandiri', () async {
-      final course = Course(
-        id: 'c-krip',
-        code: '110700',
-        name: 'Kriptografi',
-        lecturer: "Muhammad Safi'i",
-        sks: 3,
-        tone: CourseTone.zinc,
-        slots: const [
-          ScheduleSlot(
-            id: 'slot-krip-1',
-            courseId: 'c-krip',
-            courseCode: '110700',
-            courseName: 'Kriptografi',
-            day: 3,
-            dayName: 'Rabu',
-            startTime: '20:30',
-            endTime: '22:00',
-            room: 'A301',
-            durationMinutes: 90,
-          ),
-        ],
-      );
-      await dbService.insertCourse(course);
-
+      // Pasang tugas ke mata kuliah Kriptografi (course-110700)
       final task = CourseTask(
         id: 'task-krip-rot13',
         title: 'Implementasi ROT13 & Vigenere',
-        courseId: 'c-krip',
+        courseId: 'course-110700',
         courseCode: '110700',
         courseName: 'Kriptografi',
         priority: TaskPriority.high,
@@ -248,12 +208,17 @@ void main() {
       );
       await dbService.insertTask(task);
 
-      // Hapus Mata Kuliah
-      await dbService.deleteCourse('c-krip');
+      // Hapus Mata Kuliah Kriptografi
+      await dbService.deleteCourse('course-110700');
 
-      // Verifikasi Course terhapus
+      // Verifikasi Course terhapus dari 8 menjadi 7
       final courses = await dbService.getCourses();
-      expect(courses.isEmpty, isTrue);
+      expect(courses.length, 7);
+      expect(courses.any((c) => c.id == 'course-110700'), isFalse);
+
+      // Verifikasi slot Kriptografi terhapus otomatis (cascade)
+      final allSlots = [for (final c in courses) ...c.slots];
+      expect(allSlots.any((s) => s.courseId == 'course-110700'), isFalse);
 
       // Verifikasi Tugas dialihkan ke MANDIRI dan dueMode menjadi fixed (PRD Rule)
       final tasks = await dbService.getTasks();
@@ -266,52 +231,43 @@ void main() {
       expect(preservedTask.dueMode, DueMode.fixed);
     });
 
-    test('5. CLEAR ALL DATA: Menghapus bersih seluruh tabel', () async {
-      await dbService.insertCourse(
-        const Course(
-          id: 'c-1',
-          code: '111',
-          name: 'MK Test',
-          lecturer: 'Dosen Test',
-          sks: 2,
-          tone: CourseTone.blue,
-        ),
-      );
-      await dbService.insertTask(
-        CourseTask(
-          id: 't-1',
-          title: 'Tugas Test',
-          courseCode: '111',
-          courseName: 'MK Test',
-          priority: TaskPriority.medium,
-          dueCategory: TaskDueCategory.upcoming,
-          dueText: 'Besok',
-        ),
-      );
-
+    test('5. CLEAR ALL DATA: Menghapus bersih seluruh tabel tapi tidak menghapus flag is_seeded', () async {
       await dbService.clearAllData();
 
       expect((await dbService.getCourses()).isEmpty, isTrue);
       expect((await dbService.getTasks()).isEmpty, isTrue);
+
+      final isSeeded = await dbService.isInitialSeeded();
+      expect(isSeeded, isTrue, reason: 'Flag is_seeded harus tetap ada agar tidak re-seed otomatis');
     });
   });
 
   group('AppState + SQLite Lifecycle & Persistence Simulation Tests', () {
-    test('6. SIMULASI KELUAR & BUKA LAGI APLIKASI: Data tetap tersimpan utuh di SQLite', () async {
-      // Buat file database sementara di disk sistem
-      final tempDir = await Directory.systemTemp.createTemp('notebook_um_test_');
+    test('6. SIMULASI INSTAL, HAPUS, & RESTART APLIKASI: Data yang dihapus tetap hilang di SQLite saat app di-run lagi', () async {
+      // Buat file database sementara di disk sistem untuk simulasi riil
+      final tempDir = await Directory.systemTemp.createTemp('notebook_um_lifecycle_test_');
       final testDbPath = '${tempDir.path}/test_notebook.db';
       final dbService = DatabaseService.instance;
 
       try {
         await dbService.init(path: testDbPath);
 
-        // --- SESI 1: Buka aplikasi pertama kali ---
+        // --- SESI 1: PENGGUNA BARU MENGINSTAL & MEMBUKA APLIKASI ---
         final appStateSession1 = AppState(dbService: dbService);
-        // Tunggu hidrasi database awal
-        await Future.delayed(const Duration(milliseconds: 300));
+        await appStateSession1.loadDbFuture;
 
-        // Tambah catatan tugas baru
+        // Verifikasi awal: 8 mata kuliah bawaan IFB5J & Profil Mahasiswa langsung ada dari SQLite
+        expect(appStateSession1.courses.length, 8, reason: 'Saat instal, data 8 mata kuliah langsung ada di SQLite');
+        expect(appStateSession1.courses.any((c) => c.id == 'course-110700'), isTrue, reason: 'Kriptografi ada di awal');
+        expect(appStateSession1.displayName, 'Farid Noor Rahman', reason: 'Profil tersimpan di SQLite settings');
+        expect(appStateSession1.nim, '2411001');
+        expect(appStateSession1.prodi, 'S1 Informatika • IFB5J');
+        expect(appStateSession1.campus, 'Universitas Mulia');
+
+        // Pengguna memperbarui profil di SQLite
+        appStateSession1.updateProfile(displayName: 'Farid NR, S.Kom.');
+
+        // Pengguna menambah 1 catatan tugas baru
         final newTask = CourseTask(
           id: 'task-persisted-real',
           title: 'Praktikum Normalisasi Database 3NF',
@@ -327,68 +283,60 @@ void main() {
         );
         appStateSession1.addTask(newTask);
 
-        // Tambah 1 mata kuliah baru
-        const newCourse = Course(
-          id: 'course-ai-custom',
-          code: '111999',
-          name: 'Kecerdasan Buatan Terapan',
-          lecturer: 'Dr. AI Specialist, M.Kom.',
-          sks: 3,
-          tone: CourseTone.emerald,
-          slots: [
-            ScheduleSlot(
-              id: 'slot-ai-1',
-              courseId: 'course-ai-custom',
-              courseCode: '111999',
-              courseName: 'Kecerdasan Buatan Terapan',
-              day: 6,
-              dayName: 'Sabtu',
-              startTime: '09:00',
-              endTime: '11:30',
-              room: 'LAB AI 401',
-              durationMinutes: 150,
-            ),
-          ],
-        );
-        appStateSession1.addCourse(newCourse);
+        // PENGGUNA MENGHAPUS MATA KULIAH KRIPTOGRAFI (course-110700)
+        appStateSession1.deleteCourse('course-110700');
+        expect(appStateSession1.courses.length, 7, reason: 'Sesi 1: Tersisa 7 mata kuliah setelah Kriptografi dihapus');
+        expect(appStateSession1.courses.any((c) => c.id == 'course-110700'), isFalse);
 
-        // Ubah pengaturan profil dan tema
-        appStateSession1.updateProfile(displayName: 'Farid Noor Rahman, S.Kom.');
-        appStateSession1.toggleTheme(); // Jadi Dark Mode
+        // PENGGUNA MENGHAPUS 1 SLOT JADWAL DARI SMBD (slot-111500)
+        appStateSession1.deleteSlot('course-111500', 'slot-111500');
+        final smbdCourse = appStateSession1.courses.firstWhere((c) => c.id == 'course-111500');
+        expect(smbdCourse.slots.isEmpty, isTrue, reason: 'Slot SMBD berhasil dihapus');
 
-        // Tunggu beberapa saat agar unawaited SQLite writes tuntas
-        await Future.delayed(const Duration(milliseconds: 500));
+        // Tunggu sesaat agar unawaited async writes tuntas ke disk
+        await Future.delayed(const Duration(milliseconds: 300));
 
-        // --- SIMULASI KELUAR DARI APLIKASI (KILL APP) ---
+        // --- SIMULASI KELUAR DARI APLIKASI (KILL APP / RESTART) ---
         appStateSession1.dispose();
 
-        // --- SESI 2: Pengguna membuka kembali NoteBook UM ---
+        // --- SESI 2: PENGGUNA MEMBUKA KEMBALI APLIKASI (RUN LAGI) ---
+        // Sesi baru membaca database SQLite yang sama
         final appStateSession2 = AppState(dbService: dbService);
-        // Tunggu hidrasi data SQLite
-        await Future.delayed(const Duration(milliseconds: 500));
+        await appStateSession2.loadDbFuture;
 
-        // Verifikasi seluruh data sesi 1 tetap ada di sesi 2
-        // A. Tugas
+        // VERIFIKASI KUNCI:
+        // 1. Mata kuliah Kriptografi yang sudah dihapus TETAP HILANG (tidak muncul lagi dari memory/re-seed!)
+        expect(appStateSession2.courses.length, 7, reason: 'Saat app di-run lagi, jumlah matkul tetap 7');
+        expect(appStateSession2.courses.any((c) => c.id == 'course-110700'), isFalse, reason: 'Kriptografi tetap hilang');
+
+        // 2. Slot jadwal SMBD yang dihapus TETAP HILANG
+        final restoredSmbd = appStateSession2.courses.firstWhere((c) => c.id == 'course-111500');
+        expect(restoredSmbd.slots.isEmpty, isTrue, reason: 'Slot SMBD tetap hilang saat app di-run lagi');
+
+        // 3. Tugas yang ditambahkan tetap tersimpan utuh
         expect(appStateSession2.tasks.length, 1);
         final restoredTask = appStateSession2.tasks.first;
         expect(restoredTask.id, 'task-persisted-real');
         expect(restoredTask.title, 'Praktikum Normalisasi Database 3NF');
-        expect(restoredTask.notes, 'Dikerjakan dengan DB Browser SQLite');
-        expect(restoredTask.priority, TaskPriority.high);
 
-        // B. Mata Kuliah (8 default + 1 yang baru ditambahkan = 9)
-        expect(appStateSession2.courses.length, 9);
-        expect(appStateSession2.courses.any((c) => c.code == '111999'), isTrue);
-        final restoredCourse = appStateSession2.courses.firstWhere((c) => c.code == '111999');
-        expect(restoredCourse.name, 'Kecerdasan Buatan Terapan');
-        expect(restoredCourse.slots.length, 1);
-        expect(restoredCourse.slots.first.room, 'LAB AI 401');
+        // 4. Profil yang diperbarui tetap tersimpan utuh di SQLite
+        expect(appStateSession2.displayName, 'Farid NR, S.Kom.');
+        expect(appStateSession2.nim, '2411001');
+        expect(appStateSession2.campus, 'Universitas Mulia');
 
-        // C. Profil & Tema
-        expect(appStateSession2.displayName, 'Farid Noor Rahman, S.Kom.');
-        expect(appStateSession2.themeMode, ThemeMode.dark);
-
+        // --- SESI 3: HAPUS SELURUH DATA & RESTART APLIKASI ---
+        appStateSession2.clearAllData();
+        await Future.delayed(const Duration(milliseconds: 300));
         appStateSession2.dispose();
+
+        final appStateSession3 = AppState(dbService: dbService);
+        await appStateSession3.loadDbFuture;
+
+        // Verifikasi: Data tetap kosong, TIDAK otomatis re-seed karena is_seeded = 1
+        expect(appStateSession3.courses.isEmpty, isTrue, reason: 'Setelah clearAllData, data tetap bersih saat di-run lagi');
+        expect(appStateSession3.tasks.isEmpty, isTrue);
+
+        appStateSession3.dispose();
       } finally {
         await dbService.close();
         if (tempDir.existsSync()) {

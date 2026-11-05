@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import '../../data/initial_courses_data.dart';
 import '../../models/course.dart';
 import '../../models/schedule_slot.dart';
 import '../../models/task.dart';
@@ -18,11 +19,11 @@ class DatabaseService {
   static bool _factoryInitialized = false;
 
   /// Initialize database factory for Desktop and test environments
-  static void setupDatabaseFactory() {
-    if (_factoryInitialized) return;
+  static void setupDatabaseFactory({bool noIsolate = false}) {
+    if (_factoryInitialized && !noIsolate) return;
     if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
       sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
+      databaseFactory = noIsolate ? databaseFactoryFfiNoIsolate : databaseFactoryFfi;
     }
     _factoryInitialized = true;
   }
@@ -117,6 +118,96 @@ class DatabaseService {
         await db.execute('CREATE INDEX idx_slots_day ON schedule_slots (day, start_time);');
         await db.execute('CREATE INDEX idx_tasks_due ON tasks (due_at, is_completed);');
         await db.execute('CREATE INDEX idx_tasks_course ON tasks (course_id);');
+
+        // Seed initial courses & schedule slots directly into SQLite on database creation
+        for (final course in initialCoursesData) {
+          await db.insert('courses', {
+            'id': course.id,
+            'code': course.code,
+            'name': course.name,
+            'lecturer': course.lecturer,
+            'sks': course.sks,
+            'tone': course.tone.name,
+          });
+          for (final slot in course.slots) {
+            await db.insert('schedule_slots', {
+              'id': slot.id,
+              'course_id': course.id,
+              'course_code': slot.courseCode,
+              'course_name': slot.courseName,
+              'day': slot.day,
+              'day_name': slot.dayName,
+              'start_time': slot.startTime,
+              'end_time': slot.endTime,
+              'room': slot.room,
+              'duration_minutes': slot.durationMinutes,
+              'is_completed': slot.isCompleted ? 1 : 0,
+            });
+          }
+        }
+        // Seed default profile settings into SQLite on database creation
+        for (final entry in defaultProfileSettings.entries) {
+          await db.insert(
+            'settings',
+            {'key': entry.key, 'value': entry.value},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      },
+      onOpen: (db) async {
+        // Migration / safety check: pastikan is_seeded terdaftar jika database lama sudah ada
+        final seededResult = await db.query(
+          'settings',
+          where: 'key = ?',
+          whereArgs: ['is_seeded'],
+        );
+        if (seededResult.isEmpty) {
+          final count = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM courses'),
+          ) ?? 0;
+          if (count == 0) {
+            for (final course in initialCoursesData) {
+              await db.insert(
+                'courses',
+                {
+                  'id': course.id,
+                  'code': course.code,
+                  'name': course.name,
+                  'lecturer': course.lecturer,
+                  'sks': course.sks,
+                  'tone': course.tone.name,
+                },
+                conflictAlgorithm: ConflictAlgorithm.replace,
+              );
+              for (final slot in course.slots) {
+                await db.insert(
+                  'schedule_slots',
+                  {
+                    'id': slot.id,
+                    'course_id': course.id,
+                    'course_code': slot.courseCode,
+                    'course_name': slot.courseName,
+                    'day': slot.day,
+                    'day_name': slot.dayName,
+                    'start_time': slot.startTime,
+                    'end_time': slot.endTime,
+                    'room': slot.room,
+                    'duration_minutes': slot.durationMinutes,
+                    'is_completed': slot.isCompleted ? 1 : 0,
+                  },
+                  conflictAlgorithm: ConflictAlgorithm.replace,
+                );
+              }
+            }
+          }
+          for (final entry in defaultProfileSettings.entries) {
+            await db.insert(
+              'settings',
+              {'key': entry.key, 'value': entry.value},
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          }
+        }
       },
     );
 
@@ -478,10 +569,34 @@ class DatabaseService {
     });
   }
 
-  Future<void> seedInitialCourses(List<Course> courses) async {
+  Future<bool> isInitialSeeded() async {
+    final db = await database;
+    final rows = await db.query(
+      'settings',
+      where: 'key = ?',
+      whereArgs: ['is_seeded'],
+    );
+    return rows.isNotEmpty && rows.first['value'] == '1';
+  }
+
+  Future<void> resetToDefaultCourses() async {
+    await clearAllData();
+    await seedInitialCourses(initialCoursesData);
+    final db = await database;
+    for (final entry in defaultProfileSettings.entries) {
+      await db.insert(
+        'settings',
+        {'key': entry.key, 'value': entry.value},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+  }
+
+  Future<void> seedInitialCourses([List<Course>? courses]) async {
+    final list = courses ?? initialCoursesData;
     final db = await database;
     await db.transaction((txn) async {
-      for (final course in courses) {
+      for (final course in list) {
         await txn.insert(
           'courses',
           {
@@ -515,6 +630,11 @@ class DatabaseService {
           );
         }
       }
+      await txn.insert(
+        'settings',
+        {'key': 'is_seeded', 'value': '1'},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
     });
   }
 }

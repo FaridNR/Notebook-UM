@@ -22,7 +22,7 @@ class AppState extends ChangeNotifier {
   String _displayName = 'Farid Noor Rahman';
   String _nim = '2411001';
   String _prodi = 'S1 Informatika • IFB5J';
-  final String _campus = 'Universitas Mulia';
+  String _campus = 'Universitas Mulia';
   String _timezone = 'Asia/Makassar';
   bool _isLoggedIn = true;
 
@@ -73,24 +73,21 @@ class AppState extends ChangeNotifier {
   bool _isDbLoaded = false;
   bool get isDbLoaded => _isDbLoaded;
 
+  Future<void>? _loadDbFuture;
+  Future<void> get loadDbFuture => _loadDbFuture ?? Future.value();
+
   AppState({DatabaseService? dbService}) : _dbService = dbService ?? DatabaseService.instance {
     _liveNow = TimeService.nowInWita();
     _startMinuteTicker();
     _initializeData();
-    _loadFromDatabase();
+    _loadDbFuture = _loadFromDatabase();
   }
 
   Future<void> _loadFromDatabase() async {
     try {
-      final hasCourses = await _dbService.hasCourses();
-      if (!hasCourses) {
-        await _dbService.seedInitialCourses(_courses);
-      } else {
-        final loadedCourses = await _dbService.getCourses();
-        if (loadedCourses.isNotEmpty) {
-          _courses = loadedCourses;
-        }
-      }
+      // Seluruh data mata kuliah & jadwal dimuat langsung dari basis data SQLite
+      final loadedCourses = await _dbService.getCourses();
+      _courses = loadedCourses;
 
       // Selalu load seluruh catatan tugas & pengaturan dari database SQLite
       final loadedTasks = await _dbService.getTasks();
@@ -101,7 +98,9 @@ class AppState extends ChangeNotifier {
       if (settings.containsKey('display_name')) _displayName = settings['display_name']!;
       if (settings.containsKey('nim')) _nim = settings['nim']!;
       if (settings.containsKey('prodi')) _prodi = settings['prodi']!;
+      if (settings.containsKey('campus')) _campus = settings['campus']!;
       if (settings.containsKey('timezone')) _timezone = settings['timezone']!;
+      if (settings.containsKey('is_logged_in')) _isLoggedIn = settings['is_logged_in'] == '1';
       if (settings.containsKey('is_reminder_h24')) _isReminderH24 = settings['is_reminder_h24'] == '1';
       if (settings.containsKey('is_reminder_h1')) _isReminderH1 = settings['is_reminder_h1'] == '1';
       if (settings.containsKey('theme_mode')) {
@@ -137,187 +136,8 @@ class AppState extends ChangeNotifier {
   }
 
   void _initializeData() {
-    // 8 Mata Kuliah Aktif IFB5J Universitas Mulia Balikpapan (23 SKS Total)
-    _courses = [
-      const Course(
-        id: 'course-111500',
-        code: '111500',
-        name: 'Sistem Manajemen Basis Data',
-        lecturer: 'Nasruddin Bin Idris, S.Kom., M.Kom.',
-        sks: 3,
-        tone: CourseTone.amber,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-111500',
-            courseId: 'course-111500',
-            courseCode: '111500',
-            courseName: 'Sistem Manajemen Basis Data',
-            day: 1,
-            dayName: 'Senin',
-            startTime: '19:00',
-            endTime: '20:30',
-            room: 'LAB B (FIKOM)',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-      const Course(
-        id: 'course-111600',
-        code: '111600',
-        name: 'Teknologi Aplikasi Bergerak',
-        lecturer: 'Istia Budi, S.T., M.M.',
-        sks: 3,
-        tone: CourseTone.blue,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-111600',
-            courseId: 'course-111600',
-            courseCode: '111600',
-            courseName: 'Teknologi Aplikasi Bergerak',
-            day: 1,
-            dayName: 'Senin',
-            startTime: '20:30',
-            endTime: '22:00',
-            room: 'LAB A (FIKOM)',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-      const Course(
-        id: 'course-111100',
-        code: '111100',
-        name: 'Penalaran Komputer',
-        lecturer: 'Isa Rosita, S.Kom., M.Cs.',
-        sks: 3,
-        tone: CourseTone.purple,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-111100',
-            courseId: 'course-111100',
-            courseCode: '111100',
-            courseName: 'Penalaran Komputer',
-            day: 2,
-            dayName: 'Selasa',
-            startTime: '19:00',
-            endTime: '20:30',
-            room: 'A201',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-      const Course(
-        id: 'course-111400',
-        code: '111400',
-        name: 'Simulasi dan Game Komputer',
-        lecturer: 'Heruzulkifli Rowa, S.Kom, M.Kom',
-        sks: 3,
-        tone: CourseTone.emerald,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-111400',
-            courseId: 'course-111400',
-            courseCode: '111400',
-            courseName: 'Simulasi dan Game Komputer',
-            day: 2,
-            dayName: 'Selasa',
-            startTime: '20:30',
-            endTime: '22:00',
-            room: 'LAB A (FIKOM)',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-      const Course(
-        id: 'course-110700',
-        code: '110700',
-        name: 'Kriptografi',
-        lecturer: "Muhammad Safi'i, S.Kom., M.Kom.",
-        sks: 3,
-        tone: CourseTone.zinc,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-110700',
-            courseId: 'course-110700',
-            courseCode: '110700',
-            courseName: 'Kriptografi',
-            day: 3,
-            dayName: 'Rabu',
-            startTime: '20:30',
-            endTime: '22:00',
-            room: 'A301',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-      const Course(
-        id: 'course-000800',
-        code: '000800',
-        name: 'Penulisan dan Publikasi Ilmiah',
-        lecturer: 'Yustian Servanda, S.Kom., M.Kom.',
-        sks: 2,
-        tone: CourseTone.blue,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-000800',
-            courseId: 'course-000800',
-            courseCode: '000800',
-            courseName: 'Penulisan dan Publikasi Ilmiah',
-            day: 4,
-            dayName: 'Kamis',
-            startTime: '19:00',
-            endTime: '20:30',
-            room: 'A203',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-      const Course(
-        id: 'course-110600',
-        code: '110600',
-        name: 'Jaringan Nirkabel',
-        lecturer: 'Maradona, S.Kom., M.Kom.',
-        sks: 3,
-        tone: CourseTone.amber,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-110600',
-            courseId: 'course-110600',
-            courseCode: '110600',
-            courseName: 'Jaringan Nirkabel',
-            day: 5,
-            dayName: 'Jumat',
-            startTime: '19:00',
-            endTime: '20:30',
-            room: 'LAB JARINGAN (FIKOM)',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-      const Course(
-        id: 'course-111000',
-        code: '111000',
-        name: 'Pemrograman Aplikasi Bergerak',
-        lecturer: 'Pramudya Prima Insan, S.Kom., M.Kom.',
-        sks: 3,
-        tone: CourseTone.emerald,
-        slots: [
-          ScheduleSlot(
-            id: 'slot-111000',
-            courseId: 'course-111000',
-            courseCode: '111000',
-            courseName: 'Pemrograman Aplikasi Bergerak',
-            day: 5,
-            dayName: 'Jumat',
-            startTime: '20:30',
-            endTime: '22:00',
-            room: 'LAB A (FIKOM)',
-            durationMinutes: 90,
-          ),
-        ],
-      ),
-    ];
-
-    // Seluruh tugas dimulai kosong (tanpa data dummy)
+    // Data mata kuliah dan tugas dimuat secara persisten dari SQLite, bukan hardcoded in-memory
+    _courses = [];
     _tasks = [];
   }
 
@@ -411,11 +231,13 @@ class AppState extends ChangeNotifier {
   void logout() {
     _isLoggedIn = false;
     notifyListeners();
+    unawaited(_dbService.setSetting('is_logged_in', '0'));
   }
 
   void login(String email, String password) {
     _isLoggedIn = true;
     notifyListeners();
+    unawaited(_dbService.setSetting('is_logged_in', '1'));
   }
 
   // Task Completion & Undo
@@ -645,6 +467,13 @@ class AppState extends ChangeNotifier {
     _tasks = [];
     notifyListeners();
     unawaited(_dbService.clearAllData());
+  }
+
+  Future<void> resetToDefaultCourses() async {
+    await _dbService.resetToDefaultCourses();
+    _courses = await _dbService.getCourses();
+    _tasks = await _dbService.getTasks();
+    notifyListeners();
   }
 
   String exportDataAsJson() {

@@ -27,25 +27,30 @@ void main() {
 }
 
 class NoteBookUMApp extends StatefulWidget {
-  const NoteBookUMApp({super.key});
+  final AppState? appState;
+
+  const NoteBookUMApp({super.key, this.appState});
 
   @override
   State<NoteBookUMApp> createState() => _NoteBookUMAppState();
 }
 
 class _NoteBookUMAppState extends State<NoteBookUMApp> with WidgetsBindingObserver {
-  final AppState _appState = AppState();
+  late final AppState _appState;
 
   @override
   void initState() {
     super.initState();
+    _appState = widget.appState ?? AppState();
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _appState.dispose();
+    if (widget.appState == null) {
+      _appState.dispose();
+    }
     super.dispose();
   }
 

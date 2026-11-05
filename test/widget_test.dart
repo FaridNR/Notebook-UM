@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:notebook_um/core/database/database_service.dart';
 import 'package:notebook_um/main.dart';
 import 'package:notebook_um/models/task.dart';
 import 'package:notebook_um/screens/courses_screen.dart';
 import 'package:notebook_um/screens/tasks_screen.dart';
 import 'package:notebook_um/widgets/edit_task_sheet.dart';
 import 'package:notebook_um/state/app_state.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  setUpAll(() {
+    DatabaseService.setupDatabaseFactory(noIsolate: true);
+  });
+
+  setUp(() async {
+    await DatabaseService.instance.init(path: inMemoryDatabasePath);
+  });
+
   testWidgets('NoteBook UM app smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const NoteBookUMApp());
     expect(find.text('NoteBook UM'), findsOneWidget);
@@ -54,7 +64,10 @@ void main() {
   });
 
   testWidgets('Tombol tengah bergaya DANA (Tugas) membuka AddTaskSheet', (WidgetTester tester) async {
-    await tester.pumpWidget(const NoteBookUMApp());
+    final appState = AppState();
+    await appState.loadDbFuture;
+    await tester.pumpWidget(NoteBookUMApp(appState: appState));
+    await tester.pumpAndSettle();
 
     // Verifikasi tombol Tugas di navigasi bawah (tombol tengah menonjol DANA)
     final tugasBtn = find.text('Tugas');
@@ -76,12 +89,14 @@ void main() {
 
     // Verifikasi daftar Pilih Mata Kuliah tampil rapi dalam modal scrollable bebas overflow
     expect(find.text('Pilih Mata Kuliah'), findsOneWidget);
-    expect(find.text('111500 • Sistem Manajemen Basis Data'), findsOneWidget);
+    expect(find.text('110600 • Jaringan Nirkabel'), findsOneWidget);
 
     // Pilih salah satu mata kuliah dan modal tertutup
-    await tester.tap(find.text('111500 • Sistem Manajemen Basis Data'));
+    await tester.tap(find.text('110600 • Jaringan Nirkabel'));
     await tester.pumpAndSettle();
     expect(find.text('Pilih Mata Kuliah'), findsNothing);
+
+    appState.dispose();
   });
 
   testWidgets('Halaman Tentang Aplikasi dapat dibuka dari Beranda dan menampilkan info aplikasi & profil', (WidgetTester tester) async {
