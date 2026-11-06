@@ -112,7 +112,7 @@ class HomeScreen extends StatelessWidget {
             Positioned(
               left: 16,
               right: 16,
-              bottom: 90,
+              top: 60,
               child: UndoToast(
                 message: appState.undoToastMessage,
                 countdown: appState.undoCountdown,

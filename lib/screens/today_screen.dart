@@ -221,7 +221,7 @@ class TodayScreen extends StatelessWidget {
             // Main Content Feed
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                 children: [
                   // Hero: Live Active Lecture (or Empty State)
                   if (activeSlot != null && activeCourse != null) ...[
@@ -401,22 +401,27 @@ class TodayScreen extends StatelessWidget {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
-                                        Text(
-                                          '${slot.startTime} – ${slot.endTime}',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: isOngoing ? FontWeight.w700 : FontWeight.w500,
-                                            color: isOngoing
-                                                ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                                                : textSecondary,
-                                            decoration: isCompleted ? TextDecoration.lineThrough : null,
-                                          ),
-                                        ),
+                                  Expanded(
+                                    child: Text(
+                                      '${slot.startTime} – ${slot.endTime}',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: isOngoing ? FontWeight.w700 : FontWeight.w500,
+                                        color: isOngoing
+                                            ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
+                                            : textSecondary,
+                                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                      ),
+                                    ),
+                                  ),
                                         const SizedBox(height: 2),
                                         Text(
                                           isOngoing
                                               ? 'Aktif Sekarang'
                                               : (isCompleted ? 'Selesai' : 'Akan Datang'),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
