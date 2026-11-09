@@ -391,29 +391,36 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: _selectedCourse?.accentColor ?? Colors.grey,
-                              shape: BoxShape.circle,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _selectedCourse?.accentColor ?? Colors.grey,
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _selectedCourse != null
-                                ? '${_selectedCourse!.code} • ${_selectedCourse!.name}'
-                                : 'Tugas Mandiri (Non-Kuliah)',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: textPrimary,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _selectedCourse != null
+                                    ? '${_selectedCourse!.code} • ${_selectedCourse!.name}'
+                                    : 'Tugas Mandiri (Non-Kuliah)',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: textPrimary,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: _showCoursePicker,
                         child: Text(

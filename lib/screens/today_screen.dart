@@ -58,99 +58,113 @@ class TodayScreen extends StatelessWidget {
             // Top App Header
             Container(
               color: bgCard,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E2430) : const Color(0xFFF1F3F7),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        alignment: Alignment.center,
-                        child: Image.asset(
-                          'assets/images/logo_um.png',
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
                           width: 36,
                           height: 36,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Container(
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E2430) : const Color(0xFFF1F3F7),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          alignment: Alignment.center,
+                          child: Image.asset(
+                            'assets/images/logo_um.png',
                             width: 36,
                             height: 36,
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.white : const Color(0xFF090A0C),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'UM',
-                              style: TextStyle(
-                                color: isDark ? const Color(0xFF090A0C) : Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.white : const Color(0xFF090A0C),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                'UM',
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                'NoteBook UM',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: textPrimary,
-                                  letterSpacing: -0.3,
-                                ),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      'NoteBook UM',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: textPrimary,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF10B981),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF10B981),
-                                  shape: BoxShape.circle,
+                              const SizedBox(height: 2),
+                              Text(
+                                TimeService.formatLiveClock(now),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            TimeService.formatLiveClock(now),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        height: 32,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        height: 30,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         decoration: BoxDecoration(
                           color: isDark ? AppColors.darkSurfaceStep2 : AppColors.lightBg,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               'Sinkron ',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.w500,
                                 color: textSecondary,
                               ),
@@ -158,7 +172,7 @@ class TodayScreen extends StatelessWidget {
                             const Text(
                               'Aktif',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF059669),
                               ),
@@ -166,7 +180,7 @@ class TodayScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Tooltip(
                         message: 'Tentang Aplikasi',
                         child: GestureDetector(
@@ -179,8 +193,8 @@ class TodayScreen extends StatelessWidget {
                             );
                           },
                           child: Container(
-                            width: 32,
-                            height: 32,
+                            width: 30,
+                            height: 30,
                             decoration: BoxDecoration(
                               color: isDark ? AppColors.darkSurfaceStep2 : AppColors.lightBg,
                               borderRadius: BorderRadius.circular(8),
@@ -188,25 +202,25 @@ class TodayScreen extends StatelessWidget {
                             alignment: Alignment.center,
                             child: Icon(
                               Icons.info_outline_rounded,
-                              size: 16,
+                              size: 15,
                               color: textSecondary,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 30,
+                        height: 30,
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF272A34) : const Color(0xFFE5E8EC),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         alignment: Alignment.center,
                         child: Text(
                           initials.isNotEmpty ? initials : 'UM',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: textPrimary,
                           ),
@@ -315,14 +329,19 @@ class TodayScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Jadwal Hari Ini',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: textPrimary,
+                            Flexible(
+                              child: Text(
+                                'Jadwal Hari Ini',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: textPrimary,
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Text(
                               '${todaySlots.length} Sesi Terjadwal',
                               style: TextStyle(
@@ -380,12 +399,16 @@ class TodayScreen extends StatelessWidget {
                                             children: [
                                               CourseBadge(code: slot.courseCode, tone: c?.tone ?? CourseTone.zinc),
                                               const SizedBox(width: 6),
-                                              Text(
-                                                slot.courseName,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: textPrimary,
+                                              Expanded(
+                                                child: Text(
+                                                  slot.courseName,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: textPrimary,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -393,28 +416,31 @@ class TodayScreen extends StatelessWidget {
                                           const SizedBox(height: 3),
                                           Text(
                                             '${slot.room} • ${c?.lecturer ?? "-"}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style: TextStyle(fontSize: 11, color: textSecondary),
                                           ),
                                         ],
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                  Expanded(
-                                    child: Text(
-                                      '${slot.startTime} – ${slot.endTime}',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: isOngoing ? FontWeight.w700 : FontWeight.w500,
-                                        color: isOngoing
-                                            ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                                            : textSecondary,
-                                        decoration: isCompleted ? TextDecoration.lineThrough : null,
-                                      ),
-                                    ),
-                                  ),
+                                        Text(
+                                          '${slot.startTime} – ${slot.endTime}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: isOngoing ? FontWeight.w700 : FontWeight.w500,
+                                            color: isOngoing
+                                                ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
+                                                : textSecondary,
+                                            decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                          ),
+                                        ),
                                         const SizedBox(height: 2),
                                         Text(
                                           isOngoing
@@ -467,34 +493,41 @@ class TodayScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Tugas Mendesak',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: insetTone,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    '${urgentTasks.length}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: textPrimary,
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      'Tugas Mendesak',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textPrimary,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: insetTone,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '${urgentTasks.length}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () => appState.setTabIndex(2), // Switch to Tugas tab
                               child: Text(
@@ -776,14 +809,18 @@ class TodayScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          statusResult.statusLabel,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isOngoing
-                                ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                                : textSecondary,
+                        Flexible(
+                          child: Text(
+                            statusResult.statusLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: isOngoing
+                                  ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
+                                  : textSecondary,
+                            ),
                           ),
                         ),
                       ],
@@ -869,23 +906,37 @@ class TodayScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Mulai ${slot.startTime}',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: textSecondary),
-                  ),
-                  Text(
-                    statusResult.remainingText,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: isOngoing
-                          ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                          : textSecondary,
+                  Flexible(
+                    child: Text(
+                      'Mulai ${slot.startTime}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: textSecondary),
                     ),
                   ),
-                  Text(
-                    'Selesai ${slot.endTime}',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: textSecondary),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      statusResult.remainingText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: isOngoing
+                            ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
+                            : textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      'Selesai ${slot.endTime}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: textSecondary),
+                    ),
                   ),
                 ],
               ),

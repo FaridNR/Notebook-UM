@@ -141,12 +141,16 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.school_outlined, size: 18, color: Color(0xFF2563EB)),
                     const SizedBox(width: 8),
-                    Text(
-                      'Informasi Akademik & Pengembang',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: textPrimary,
+                    Expanded(
+                      child: Text(
+                        'Informasi Akademik & Pengembang',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: textPrimary,
+                        ),
                       ),
                     ),
                   ],
@@ -188,12 +192,16 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.layers_outlined, size: 18, color: Color(0xFF059669)),
                     const SizedBox(width: 8),
-                    Text(
-                      'Fitur Utama & Arsitektur',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: textPrimary,
+                    Expanded(
+                      child: Text(
+                        'Fitur Utama & Arsitektur',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: textPrimary,
+                        ),
                       ),
                     ),
                   ],

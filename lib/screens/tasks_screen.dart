@@ -67,13 +67,23 @@ class _TasksScreenState extends State<TasksScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      CourseBadge(code: task.courseCode, tone: c?.tone ?? CourseTone.zinc),
-                      const SizedBox(width: 8),
-                      Text(task.courseName, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textSecondary)),
-                    ],
+                  Expanded(
+                    child: Row(
+                      children: [
+                        CourseBadge(code: task.courseCode, tone: c?.tone ?? CourseTone.zinc),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            task.courseName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -293,62 +303,77 @@ class _TasksScreenState extends State<TasksScreen> {
             // Top App Header
             Container(
               color: bgCard,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Consumer<AppState>(
-                    builder: (context, state, _) {
-                      final totalCatatan = state.tasks.length;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Daftar Tugas',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color: textPrimary,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF1E2430) : const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isDark ? const Color(0xFF2E384D) : const Color(0xFFBFDBFE),
-                                    width: 1,
+                  Expanded(
+                    child: Consumer<AppState>(
+                      builder: (context, state, _) {
+                        final totalCatatan = state.tasks.length;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  flex: 3,
+                                  child: Text(
+                                    'Daftar Tugas',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: textPrimary,
+                                      letterSpacing: -0.5,
+                                    ),
                                   ),
                                 ),
-                                child: Text(
-                                  'Total: $totalCatatan Catatan',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF2563EB),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  flex: 2,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF1E2430) : const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isDark ? const Color(0xFF2E384D) : const Color(0xFFBFDBFE),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Total: $totalCatatan Catatan',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Total $totalCatatan Catatan • ${state.activeTasksCount} Aktif • ${state.completedTasksCount} Selesai',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: textSecondary,
+                              ],
                             ),
-                          ),
-                        ],
-                      );
-                    },
+                            const SizedBox(height: 2),
+                            Text(
+                              'Total $totalCatatan Catatan • ${state.activeTasksCount} Aktif • ${state.completedTasksCount} Selesai',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: textSecondary,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => AddTaskSheet.show(context, widget.appState),
                     child: Container(
@@ -675,23 +700,33 @@ class _TasksScreenState extends State<TasksScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              if (dotColor != null) ...[
-                Container(width: 7, height: 7, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
-                const SizedBox(width: 6),
-              ],
-              Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textPrimary)),
-              if (badge != null) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(color: isDark ? AppColors.blueDarkBg : AppColors.blueLightBg, borderRadius: BorderRadius.circular(4)),
-                  child: Text(badge, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: isDark ? AppColors.blueTextDark : AppColors.blueText)),
+          Expanded(
+            child: Row(
+              children: [
+                if (dotColor != null) ...[
+                  Container(width: 7, height: 7, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textPrimary),
+                  ),
                 ),
+                if (badge != null) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(color: isDark ? AppColors.blueDarkBg : AppColors.blueLightBg, borderRadius: BorderRadius.circular(4)),
+                    child: Text(badge, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: isDark ? AppColors.blueTextDark : AppColors.blueText)),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
+          const SizedBox(width: 8),
           Text(countText, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: textSecondary)),
         ],
       ),
@@ -791,23 +826,29 @@ class _TasksScreenState extends State<TasksScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        task.dueText,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: task.isCompleted
-                              ? const Color(0xFF10B981)
-                              : (task.dueCategory == TaskDueCategory.urgent
-                                  ? const Color(0xFFF43F5E)
-                                  : (isDark ? AppColors.blueTextDark : AppColors.blueText)),
+                      Flexible(
+                        child: Text(
+                          task.dueText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: task.isCompleted
+                                ? const Color(0xFF10B981)
+                                : (task.dueCategory == TaskDueCategory.urgent
+                                    ? const Color(0xFFF43F5E)
+                                    : (isDark ? AppColors.blueTextDark : AppColors.blueText)),
+                          ),
                         ),
                       ),
-                      if (task.secondaryMeta != null)
+                      if (task.secondaryMeta != null) ...[
+                        const SizedBox(width: 6),
                         Text(
                           task.secondaryMeta!,
                           style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textSecondary),
                         ),
+                      ],
                     ],
                   ),
                 ],

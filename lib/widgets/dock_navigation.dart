@@ -171,18 +171,18 @@ class DockNavigation extends StatelessWidget {
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 2),
           alignment: Alignment.center,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
             padding: EdgeInsets.symmetric(
-              horizontal: isSelected ? 12 : 6,
-              vertical: 4,
+              horizontal: isSelected ? 10 : 4,
+              vertical: 2,
             ),
             decoration: BoxDecoration(
               color: isSelected ? activePillBg : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -190,12 +190,14 @@ class DockNavigation extends StatelessWidget {
               children: [
                 Icon(
                   isSelected ? activeIcon : icon,
-                  size: 20,
+                  size: 19,
                   color: isSelected ? activeColor : inactiveColor,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

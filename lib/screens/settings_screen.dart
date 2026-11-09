@@ -238,33 +238,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Top App Header
             Container(
               color: bgCard,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pengaturan',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          letterSpacing: -0.5,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pengaturan',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                            letterSpacing: -0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Preferensi & Sinkronisasi Akun',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
+                        const SizedBox(height: 2),
+                        Text(
+                          'Preferensi & Sinkronisasi Akun',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     width: 10,
                     height: 10,
@@ -307,58 +314,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  alignment: Alignment.center,
-                                  child: Image.asset(
-                                    'assets/images/logo_um.png',
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
                                     width: 32,
                                     height: 32,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) => const Text(
-                                      'UM',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF0F172A),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    alignment: Alignment.center,
+                                    child: Image.asset(
+                                      'assets/images/logo_um.png',
+                                      width: 32,
+                                      height: 32,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) => const Text(
+                                        'UM',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF0F172A),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text(
-                                      'UNIVERSITAS MULIA',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.8,
-                                        color: Colors.white,
-                                      ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: const [
+                                        Text(
+                                          'UNIVERSITAS MULIA',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.8,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Text(
+                                          'KARTU TANDA MAHASISWA DIGITAL',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                            color: Color(0xFF94A3B8),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      'KARTU TANDA MAHASISWA DIGITAL',
-                                      style: TextStyle(
-                                        fontSize: 8,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 0.5,
-                                        color: Color(0xFF94A3B8),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
@@ -485,24 +501,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Zona Waktu Aktif',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: textPrimary,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Zona Waktu Aktif',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: textPrimary,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${widget.appState.timezone} (UTC+8)',
-                                      style: TextStyle(fontSize: 11, color: textSecondary),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${widget.appState.timezone} (UTC+8)',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(fontSize: 11, color: textSecondary),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Row(
                                   children: [
                                     Text(
@@ -561,17 +584,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Pengingat H-24 Jam',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text('Notifikasi 1 hari sebelum batas pengumpulan', style: TextStyle(fontSize: 10, color: textSecondary)),
-                                ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Pengingat H-24 Jam',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text('Notifikasi 1 hari sebelum batas pengumpulan', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: textSecondary)),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               CupertinoSwitch(
                                 value: widget.appState.isReminderH24,
                                 activeTrackColor: const Color(0xFF10B981),
@@ -592,17 +620,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Pengingat H-1 Jam',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text('Notifikasi mendesak sebelum jam tenggat', style: TextStyle(fontSize: 10, color: textSecondary)),
-                                ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Pengingat H-1 Jam',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text('Notifikasi mendesak sebelum jam tenggat', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: textSecondary)),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               CupertinoSwitch(
                                 value: widget.appState.isReminderH1,
                                 activeTrackColor: const Color(0xFF10B981),
@@ -622,17 +655,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Mode Gelap (OLED Black)',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text('Latar belakang gelap hemat baterai', style: TextStyle(fontSize: 10, color: textSecondary)),
-                                ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Mode Gelap (OLED Black)',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text('Latar belakang gelap hemat baterai', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: textSecondary)),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               CupertinoSwitch(
                                 value: isDark,
                                 activeTrackColor: const Color(0xFF10B981),
@@ -721,12 +759,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             color: textPrimary,
                                           ),
                                           const SizedBox(width: 8),
-                                          Text(
-                                            'Reset Jadwal ke Matkul Tetap',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: textPrimary,
+                                          Flexible(
+                                            child: Text(
+                                              'Reset Jadwal ke Matkul Tetap',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: textPrimary,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -752,12 +794,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             color: isDark ? const Color(0xFF090A0C) : Colors.white,
                                           ),
                                           const SizedBox(width: 8),
-                                          Text(
-                                            'Ekspor File JSON Lengkap',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                                          Flexible(
+                                            child: Text(
+                                              'Ekspor File JSON Lengkap',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                                              ),
                                             ),
                                           ),
                                         ],

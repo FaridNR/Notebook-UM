@@ -273,41 +273,44 @@ class CoursesScreen extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5E8EC),
-                    borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE5E8EC),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CourseBadge(code: '${course.code} • ${course.sks} SKS', tone: course.tone),
-                      const SizedBox(height: 4),
-                      Text(
-                        course.name,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CourseBadge(code: '${course.code} • ${course.sks} SKS', tone: course.tone),
+                          const SizedBox(height: 4),
+                          Text(
+                            course.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(ctx)),
+                  ],
+                ),
               const SizedBox(height: 8),
               Text(
                 'Dosen: ${course.lecturer}',
@@ -402,9 +405,10 @@ class CoursesScreen extends StatelessWidget {
               ),
             ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 
   void _showAddSlotSheet(BuildContext context, Course course) {
@@ -436,11 +440,12 @@ class CoursesScreen extends StatelessWidget {
                 top: 20,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text('Tambah Slot Jadwal: ${course.code}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary)),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Tambah Slot Jadwal: ${course.code}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary)),
                   const SizedBox(height: 14),
 
                   Text('Pilih Hari', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
@@ -564,9 +569,10 @@ class CoursesScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            );
-          },
-        );
+            ),
+          );
+        },
+      );
       },
     );
   }
@@ -714,33 +720,40 @@ class CoursesScreen extends StatelessWidget {
             // Top App Header
             Container(
               color: bgCard,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Mata Kuliah',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          letterSpacing: -0.5,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mata Kuliah',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                            letterSpacing: -0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${appState.totalCourses} Terdaftar • ${appState.totalSks} SKS Total',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
+                        const SizedBox(height: 2),
+                        Text(
+                          '${appState.totalCourses} Terdaftar • ${appState.totalSks} SKS Total',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -871,14 +884,19 @@ class CoursesScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Ringkasan Beban Studi',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: textPrimary,
+                            Flexible(
+                              child: Text(
+                                'Ringkasan Beban Studi',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: textPrimary,
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Text(
                               '${appState.totalCourses} / 30 Matkul Terisi',
                               style: TextStyle(
@@ -915,10 +933,15 @@ class CoursesScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Beban Semester Ini',
-                              style: TextStyle(fontSize: 11, color: textSecondary),
+                            Flexible(
+                              child: Text(
+                                'Beban Semester Ini',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11, color: textSecondary),
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Text(
                               '${appState.totalSks} dari Max 24 SKS',
                               style: TextStyle(
@@ -1108,30 +1131,37 @@ class CoursesScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CourseBadge(code: '${course.code} • ${course.sks} SKS', tone: course.tone),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    course.name,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CourseBadge(code: '${course.code} • ${course.sks} SKS', tone: course.tone),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    course.lecturer,
-                    style: TextStyle(fontSize: 11, color: textSecondary),
-                  ),
-                ],
+                    const SizedBox(height: 5),
+                    Text(
+                      course.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      course.lecturer,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -1164,14 +1194,19 @@ class CoursesScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '${slot.dayName}: ${slot.startTime} – ${slot.endTime} WITA',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: textPrimary,
+                  Expanded(
+                    child: Text(
+                      '${slot.dayName}: ${slot.startTime} – ${slot.endTime} WITA',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Text(
                     slot.room,
                     style: TextStyle(
@@ -1191,10 +1226,15 @@ class CoursesScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '$activeTasks tugas aktif',
-                style: TextStyle(fontSize: 11, color: textSecondary),
+              Flexible(
+                child: Text(
+                  '$activeTasks tugas aktif',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: textSecondary),
+                ),
               ),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => _showManageCourseSheet(context, course),
                 child: Text(
@@ -1202,7 +1242,7 @@ class CoursesScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: slotBadgeText,
+                    color: AppColors.blueAccent,
                   ),
                 ),
               ),

@@ -320,33 +320,40 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             // Top App Header
             Container(
               color: bgCard,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Jadwal Kuliah',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          letterSpacing: -0.5,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Jadwal Kuliah',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                            letterSpacing: -0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${widget.appState.totalSlots} Slot Terjadwal • Zona WITA',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
+                        const SizedBox(height: 2),
+                        Text(
+                          '${widget.appState.totalSlots} Slot Terjadwal • Zona WITA',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => _showAddSlotDialog(context),
                     child: Container(
@@ -405,58 +412,71 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             // View Mode Segmented Tone Bar
             Container(
               color: bgCard,
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkSurfaceStep2 : AppColors.lightBg,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => setState(() => _viewMode = 0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _viewMode == 0 ? (isDark ? AppColors.darkSurface : Colors.white) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              dayNames[_selectedDay],
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: _viewMode == 0 ? FontWeight.w700 : FontWeight.w500,
-                                color: _viewMode == 0 ? textPrimary : textSecondary,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurfaceStep2 : AppColors.lightBg,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _viewMode = 0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _viewMode == 0 ? (isDark ? AppColors.darkSurface : Colors.white) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  dayNames[_selectedDay],
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: _viewMode == 0 ? FontWeight.w700 : FontWeight.w500,
+                                    color: _viewMode == 0 ? textPrimary : textSecondary,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () => setState(() => _viewMode = 1),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _viewMode == 1 ? (isDark ? AppColors.darkSurface : Colors.white) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Pekan Ini',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: _viewMode == 1 ? FontWeight.w700 : FontWeight.w500,
-                                color: _viewMode == 1 ? textPrimary : textSecondary,
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _viewMode = 1),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _viewMode == 1 ? (isDark ? AppColors.darkSurface : Colors.white) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Pekan Ini',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: _viewMode == 1 ? FontWeight.w700 : FontWeight.w500,
+                                    color: _viewMode == 1 ? textPrimary : textSecondary,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         width: 7,
@@ -557,22 +577,29 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              CourseBadge(code: slot.courseCode, tone: course?.tone ?? CourseTone.zinc, isSolid: true),
-                              const SizedBox(width: 8),
-                              Text(
-                                statusResult.statusLabel,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: statusResult.status == ClassStatus.berlangsung
-                                      ? AppColors.amberAccent
-                                      : textSecondary,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                CourseBadge(code: slot.courseCode, tone: course?.tone ?? CourseTone.zinc, isSolid: true),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    statusResult.statusLabel,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: statusResult.status == ClassStatus.berlangsung
+                                          ? AppColors.amberAccent
+                                          : textSecondary,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(color: insetTone, borderRadius: BorderRadius.circular(8)),
@@ -581,9 +608,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text(slot.courseName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: textPrimary)),
+                      Text(slot.courseName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: textPrimary)),
                       const SizedBox(height: 2),
-                      Text('${course?.lecturer ?? "-"} • ${course?.sks ?? 0} SKS', style: TextStyle(fontSize: 11, color: textSecondary)),
+                      Text('${course?.lecturer ?? "-"} • ${course?.sks ?? 0} SKS', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: textSecondary)),
                       const SizedBox(height: 10),
 
                       Container(
@@ -592,8 +619,23 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('${slot.startTime} – ${slot.endTime} WITA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: textPrimary)),
-                            Text(statusResult.remainingText, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: textSecondary)),
+                            Flexible(
+                              child: Text(
+                                '${slot.startTime} – ${slot.endTime} WITA',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: textPrimary),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                statusResult.remainingText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: textSecondary),
+                              ),
+                            ),
                           ],
                         ),
                       ),
