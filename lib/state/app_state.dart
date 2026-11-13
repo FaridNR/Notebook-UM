@@ -26,6 +26,8 @@ class AppState extends ChangeNotifier {
   String _prodi = 'S1 Informatika • IFB5J';
   String _campus = 'Universitas Mulia';
   String _timezone = 'Asia/Makassar';
+  String _userEmail = 'faridnoorrahman@gmail.com';
+  String _userPassword = '0542411640';
   bool _isLoggedIn = true;
 
   // Live Time state (PRD Section 1.7)
@@ -58,6 +60,8 @@ class AppState extends ChangeNotifier {
   String get prodi => _prodi;
   String get campus => _campus;
   String get timezone => _timezone;
+  String get userEmail => _userEmail;
+  String get userPassword => _userPassword;
   bool get isLoggedIn => _isLoggedIn;
   DateTime get liveNow => _liveNow;
 
@@ -106,6 +110,8 @@ class AppState extends ChangeNotifier {
       if (settings.containsKey('prodi')) _prodi = settings['prodi']!;
       if (settings.containsKey('campus')) _campus = settings['campus']!;
       if (settings.containsKey('timezone')) _timezone = settings['timezone']!;
+      if (settings.containsKey('user_email')) _userEmail = settings['user_email']!;
+      if (settings.containsKey('user_password')) _userPassword = settings['user_password']!;
       if (settings.containsKey('is_logged_in')) _isLoggedIn = settings['is_logged_in'] == '1';
       if (settings.containsKey('is_reminder_h24')) _isReminderH24 = settings['is_reminder_h24'] == '1';
       if (settings.containsKey('is_reminder_h1')) _isReminderH1 = settings['is_reminder_h1'] == '1';
@@ -274,10 +280,18 @@ class AppState extends ChangeNotifier {
     unawaited(_repository.setSetting('is_logged_in', '0'));
   }
 
+  bool verifyCredentials(String email, String password) {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanSavedEmail = _userEmail.trim().toLowerCase();
+    return cleanEmail == cleanSavedEmail && password == _userPassword;
+  }
+
   void login(String email, String password) {
     _isLoggedIn = true;
-    unawaited(_repository.setSetting('user_email', email));
-    unawaited(_repository.setSetting('user_password', password));
+    _userEmail = email.trim();
+    _userPassword = password;
+    unawaited(_repository.setSetting('user_email', _userEmail));
+    unawaited(_repository.setSetting('user_password', _userPassword));
     unawaited(_repository.setSetting('is_logged_in', '1'));
     notifyListeners();
   }
@@ -289,15 +303,17 @@ class AppState extends ChangeNotifier {
     String? nim,
     String? prodi,
   }) {
-    _displayName = name;
-    if (nim != null && nim.isNotEmpty) _nim = nim;
-    if (prodi != null && prodi.isNotEmpty) _prodi = prodi;
+    _displayName = name.trim();
+    if (nim != null && nim.trim().isNotEmpty) _nim = nim.trim();
+    if (prodi != null && prodi.trim().isNotEmpty) _prodi = prodi.trim();
+    _userEmail = email.trim();
+    _userPassword = password;
     _isLoggedIn = true;
-    unawaited(_repository.setSetting('display_name', name));
-    if (nim != null && nim.isNotEmpty) unawaited(_repository.setSetting('nim', nim));
-    if (prodi != null && prodi.isNotEmpty) unawaited(_repository.setSetting('prodi', prodi));
-    unawaited(_repository.setSetting('user_email', email));
-    unawaited(_repository.setSetting('user_password', password));
+    unawaited(_repository.setSetting('display_name', _displayName));
+    unawaited(_repository.setSetting('nim', _nim));
+    if (prodi != null && prodi.trim().isNotEmpty) unawaited(_repository.setSetting('prodi', _prodi));
+    unawaited(_repository.setSetting('user_email', _userEmail));
+    unawaited(_repository.setSetting('user_password', _userPassword));
     unawaited(_repository.setSetting('is_logged_in', '1'));
     notifyListeners();
   }
@@ -566,7 +582,7 @@ class AppState extends ChangeNotifier {
         'nim': _nim,
         'prodi': _prodi,
         'campus': _campus,
-        'email': 'farid.noor@mhs.universitasmulia.ac.id',
+        'email': _userEmail,
         'role': 'Mahasiswa',
       },
       'courses': _courses.map((c) => c.toJson()).toList(),

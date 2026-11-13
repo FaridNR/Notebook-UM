@@ -562,4 +562,105 @@ void main() {
 
     appState.dispose();
   });
+
+  testWidgets('AuthScreen menolak password salah, email format salah, dan password spasi kosong', (WidgetTester tester) async {
+    final appState = AppState();
+    appState.logout(); // pastikan belum login
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AuthScreen(appState: appState),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. Tes password salah
+    final passwordField = find.byType(TextField).at(1);
+    await tester.enterText(passwordField, 'PasswordSalah123');
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Masuk ke Akun'));
+    await tester.tap(find.text('Masuk ke Akun'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Email atau kata sandi salah. Silakan periksa kembali.'), findsOneWidget);
+    expect(appState.isLoggedIn, isFalse);
+
+    // 2. Tes email format salah (hanya @)
+    final emailField = find.byType(TextField).at(0);
+    await tester.enterText(emailField, 'emailTidakValid@');
+    await tester.enterText(passwordField, '0542411640');
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Masuk ke Akun'));
+    await tester.tap(find.text('Masuk ke Akun'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Masukkan alamat email yang valid (contoh: nama@mhs.ac.id)'), findsOneWidget);
+    expect(appState.isLoggedIn, isFalse);
+
+    // 3. Tes password hanya spasi kosong
+    await tester.enterText(emailField, 'faridnoorrahman@gmail.com');
+    await tester.enterText(passwordField, '          ');
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Masuk ke Akun'));
+    await tester.tap(find.text('Masuk ke Akun'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kata sandi tidak boleh kosong atau hanya berisi spasi'), findsOneWidget);
+    expect(appState.isLoggedIn, isFalse);
+
+    // 4. Tes password benar -> Berhasil login
+    await tester.enterText(passwordField, '0542411640');
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Masuk ke Akun'));
+    await tester.tap(find.text('Masuk ke Akun'));
+    await tester.pumpAndSettle();
+
+    expect(appState.isLoggedIn, isTrue);
+
+    appState.dispose();
+  });
+
+  testWidgets('AuthScreen registrasi menolak NIM non-numerik dan nama terlalu pendek', (WidgetTester tester) async {
+    final appState = AppState();
+    appState.logout();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AuthScreen(appState: appState),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Pindah ke tab Registrasi
+    await tester.tap(find.text('Registrasi'));
+    await tester.pumpAndSettle();
+
+    // 1. Tes NIM non-angka
+    final nimField = find.byType(TextField).at(1);
+    await tester.enterText(nimField, 'ABCXYZ');
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Daftar Akun Baru'));
+    await tester.tap(find.text('Daftar Akun Baru'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('NIM harus berupa angka valid (6–12 digit, contoh: 2411001)'), findsOneWidget);
+    expect(appState.isLoggedIn, isFalse);
+
+    // 2. Masukkan NIM valid dan daftarkan
+    await tester.enterText(nimField, '2411001');
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Daftar Akun Baru'));
+    await tester.tap(find.text('Daftar Akun Baru'));
+    await tester.pumpAndSettle();
+
+    expect(appState.isLoggedIn, isTrue);
+
+    appState.dispose();
+  });
 }
