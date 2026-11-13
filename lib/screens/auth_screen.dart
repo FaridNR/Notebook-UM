@@ -35,6 +35,8 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _obscureRegConfirm = true;
 
   String? _errorMessage;
+  int _failedLoginAttempts = 0;
+  DateTime? _lockoutUntil;
 
   @override
   void initState() {
@@ -61,6 +63,15 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _submitLogin() {
+    // Cek status penguncian brute force
+    if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+      final remainingSec = _lockoutUntil!.difference(DateTime.now()).inSeconds + 1;
+      setState(() {
+        _errorMessage = 'Terlalu banyak percobaan gagal. Akses dikunci sementara selama $remainingSec detik.';
+      });
+      return;
+    }
+
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
@@ -88,11 +99,23 @@ class _AuthScreenState extends State<AuthScreen> {
     // Validasi kecocokan kredensial dengan database lokal
     final isValid = widget.appState.verifyCredentials(email, password);
     if (!isValid) {
-      setState(() {
-        _errorMessage = 'Email atau kata sandi salah. Silakan periksa kembali.';
-      });
+      _failedLoginAttempts++;
+      if (_failedLoginAttempts >= 5) {
+        _lockoutUntil = DateTime.now().add(const Duration(seconds: 30));
+        setState(() {
+          _errorMessage = 'Terlalu banyak percobaan gagal. Akses dikunci sementara selama 30 detik.';
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Email atau kata sandi salah. Silakan periksa kembali.';
+        });
+      }
       return;
     }
+
+    // Reset percobaan jika login berhasil
+    _failedLoginAttempts = 0;
+    _lockoutUntil = null;
 
     setState(() {
       _errorMessage = null;
@@ -155,6 +178,46 @@ class _AuthScreenState extends State<AuthScreen> {
       _errorMessage = null;
     });
 
+    // Peringatan jika mendaftarkan email berbeda dengan akun saat ini
+    if (widget.appState.userEmail.isNotEmpty &&
+        widget.appState.userEmail.trim().toLowerCase() != email.toLowerCase()) {
+      _confirmOverwriteAccount(name, email, password, nim);
+      return;
+    }
+
+    _executeRegister(name, email, password, nim);
+  }
+
+  void _confirmOverwriteAccount(String name, String email, String password, String nim) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Ganti Akun Perangkat?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        content: Text(
+          'Perangkat ini saat ini terhubung dengan akun ${widget.appState.userEmail}. Mendaftar akun baru ($email) akan menggantikan profil akun utama di perangkat ini. Lanjutkan?',
+          style: TextStyle(fontSize: 13, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _executeRegister(name, email, password, nim);
+            },
+            child: const Text('Ya, Ganti Akun'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _executeRegister(String name, String email, String password, String nim) {
     widget.appState.register(
       name: name,
       email: email,
