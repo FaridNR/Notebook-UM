@@ -262,8 +262,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
               GestureDetector(
                 onTap: () {
-                  Navigator.pop(ctx);
-                  widget.appState.deleteSlot(slot.courseId, slot.id);
+                  _showDeleteSlotConfirmDialog(context, slot, ctx);
                 },
                 child: Container(
                   height: 44,
@@ -286,6 +285,59 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showDeleteSlotConfirmDialog(BuildContext context, ScheduleSlot slot, BuildContext sheetContext) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Hapus Slot Sesi?',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFFE11D48),
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus slot sesi ${slot.courseName} (${slot.dayName}, ${slot.startTime} – ${slot.endTime} WITA) di ${slot.room}?',
+          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(
+              'Tidak',
+              style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              if (sheetContext.mounted) {
+                Navigator.pop(sheetContext);
+              }
+              widget.appState.deleteSlot(slot.courseId, slot.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE11D48),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Ya, hapus',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -580,7 +632,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           Expanded(
                             child: Row(
                               children: [
-                                CourseBadge(code: slot.courseCode, tone: course?.tone ?? CourseTone.zinc, isSolid: true),
+                                Flexible(
+                                  child: CourseBadge(code: slot.courseCode, tone: course?.tone ?? CourseTone.zinc, isSolid: true),
+                                ),
                                 const SizedBox(width: 8),
                                 Flexible(
                                   child: Text(

@@ -76,6 +76,8 @@ class CourseBadge extends StatelessWidget {
       ),
       child: Text(
         code,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: text,
           fontSize: 11,

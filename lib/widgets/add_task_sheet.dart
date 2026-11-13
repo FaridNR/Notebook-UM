@@ -33,7 +33,6 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
 
   Course? _selectedCourse;
   int _dueModeIndex = 0; // 0: Next Session, 1: Pilih Tanggal, 2: Tanpa Tenggat
-  TaskPriority _selectedPriority = TaskPriority.medium;
   bool _reminderEnabled = true;
   DateTime _customDate = DateTime.now().add(const Duration(days: 2));
 
@@ -156,7 +155,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
       courseId: courseId,
       courseCode: courseCode,
       courseName: courseName,
-      priority: _selectedPriority,
+      priority: TaskPriority.medium,
       dueCategory: dueCategory,
       dueMode: dueMode,
       dueAt: dueAt,
@@ -313,11 +312,14 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bgCard,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bgCard,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
       child: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(
@@ -445,6 +447,9 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                   decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(12)),
                   child: TextField(
                     controller: _titleController,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                    onEditingComplete: () => FocusScope.of(context).unfocus(),
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Nama tugas kuliah...',
@@ -465,6 +470,9 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                   child: TextField(
                     controller: _notesController,
                     maxLines: 2,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                    onEditingComplete: () => FocusScope.of(context).unfocus(),
                     style: TextStyle(fontSize: 13, color: textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Format pengerjaan, instruksi dosen, dll...',
@@ -573,21 +581,6 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
 
                 const SizedBox(height: 14),
 
-                // Priority Selection
-                Text('Prioritas', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    _buildPriorityButton(TaskPriority.low, 'Rendah', isDark, textPrimary, textSecondary),
-                    const SizedBox(width: 8),
-                    _buildPriorityButton(TaskPriority.medium, 'Sedang', isDark, textPrimary, textSecondary),
-                    const SizedBox(width: 8),
-                    _buildPriorityButton(TaskPriority.high, 'Tinggi', isDark, textPrimary, textSecondary),
-                  ],
-                ),
-
-                const SizedBox(height: 14),
-
                 // Local Reminder Toggle
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -645,6 +638,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -686,53 +680,6 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPriorityButton(
-    TaskPriority priority,
-    String label,
-    bool isDark,
-    Color textPrimary,
-    Color textSecondary,
-  ) {
-    final isSelected = _selectedPriority == priority;
-    Color activeColor;
-    switch (priority) {
-      case TaskPriority.high:
-        activeColor = const Color(0xFFF43F5E);
-        break;
-      case TaskPriority.medium:
-        activeColor = const Color(0xFFD97706);
-        break;
-      case TaskPriority.low:
-        activeColor = const Color(0xFF10B981);
-        break;
-    }
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedPriority = priority),
-        child: Container(
-          height: 38,
-          decoration: BoxDecoration(
-            color: isSelected
-                ? (isDark ? activeColor.withValues(alpha: 0.2) : activeColor.withValues(alpha: 0.1))
-                : (isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep),
-            borderRadius: BorderRadius.circular(10),
-            border: isSelected ? Border.all(color: activeColor, width: 1.5) : null,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? activeColor : textSecondary,
-            ),
           ),
         ),
       ),

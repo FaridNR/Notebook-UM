@@ -187,18 +187,21 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
     final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final insetTone = isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bgCard,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: EdgeInsets.only(
-        top: 14,
-        left: 20,
-        right: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Form(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bgCard,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: EdgeInsets.only(
+          top: 14,
+          left: 20,
+          right: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           child: Column(
@@ -260,6 +263,9 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
               const SizedBox(height: 6),
               TextFormField(
                 controller: _titleController,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
+                onEditingComplete: () => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   hintText: 'Contoh: Makalah Sistem Basis Data',
                   filled: true,
@@ -308,6 +314,9 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
               TextFormField(
                 controller: _notesController,
                 maxLines: 3,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
+                onEditingComplete: () => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   hintText: 'Tambahkan instruksi dosen atau catatan pengerjaan...',
                   filled: true,
@@ -460,6 +469,7 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

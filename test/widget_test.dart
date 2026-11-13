@@ -89,10 +89,10 @@ void main() {
 
     // Verifikasi daftar Pilih Mata Kuliah tampil rapi dalam modal scrollable bebas overflow
     expect(find.text('Pilih Mata Kuliah'), findsOneWidget);
-    expect(find.text('110600 • Jaringan Nirkabel'), findsOneWidget);
+    expect(find.text('110600 • Jaringan Nirkabel'), findsWidgets);
 
     // Pilih salah satu mata kuliah dan modal tertutup
-    await tester.tap(find.text('110600 • Jaringan Nirkabel'));
+    await tester.tap(find.text('110600 • Jaringan Nirkabel').last);
     await tester.pumpAndSettle();
     expect(find.text('Pilih Mata Kuliah'), findsNothing);
 

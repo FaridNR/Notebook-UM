@@ -196,8 +196,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
-                      widget.appState.deleteTask(task.id);
-                      Navigator.pop(ctx);
+                      _showDeleteTaskConfirmDialog(context, task, ctx);
                     },
                     child: Container(
                       height: 44,
@@ -223,6 +222,59 @@ class _TasksScreenState extends State<TasksScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showDeleteTaskConfirmDialog(BuildContext context, CourseTask task, BuildContext sheetContext) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Hapus Tugas?',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFFE11D48),
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus tugas "${task.title}"? Tindakan ini tidak dapat dibatalkan.',
+          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(
+              'Tidak',
+              style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              if (sheetContext.mounted) {
+                Navigator.pop(sheetContext);
+              }
+              widget.appState.deleteTask(task.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE11D48),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Ya, hapus',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

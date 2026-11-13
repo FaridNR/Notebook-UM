@@ -339,13 +339,25 @@ class CoursesScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '${slot.dayName}, ${slot.startTime} – ${slot.endTime}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                        Expanded(
+                          child: Text(
+                            '${slot.dayName}, ${slot.startTime} – ${slot.endTime}',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                          ),
                         ),
-                        Text(
-                          slot.room,
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              slot.room,
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => _confirmDeleteSlot(context, course.id, slot),
+                              child: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFE11D48)),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -578,19 +590,99 @@ class CoursesScreen extends StatelessWidget {
   }
 
   void _confirmDeleteCourse(BuildContext context, Course course) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Mata Kuliah?'),
-        content: Text('Mata kuliah "${course.name}" (${course.code}) akan dihapus. Tugas yang terhubung akan dialihkan ke kategori Mandiri.'),
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Hapus Mata Kuliah?',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFFE11D48),
+          ),
+        ),
+        content: Text(
+          'Mata kuliah "${course.name}" (${course.code}) akan dihapus. Tugas yang terhubung akan dialihkan ke kategori Mandiri.',
+          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
           TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Tidak',
+              style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
             onPressed: () {
-              appState.deleteCourse(course.id);
               Navigator.pop(ctx);
+              appState.deleteCourse(course.id);
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE11D48),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Ya, hapus',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteSlot(BuildContext context, String courseId, ScheduleSlot slot) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Hapus Slot Sesi?',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFFE11D48),
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus slot sesi ${slot.dayName} (${slot.startTime} – ${slot.endTime} WITA) di ${slot.room}?',
+          style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Tidak',
+              style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              appState.deleteSlot(courseId, slot.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE11D48),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Ya, hapus',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -675,7 +767,10 @@ class CoursesScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Batal', style: TextStyle(color: textSecondary)),
+            child: Text(
+              'Tidak',
+              style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -694,8 +789,12 @@ class CoursesScreen extends StatelessWidget {
               backgroundColor: const Color(0xFFE11D48),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
             ),
-            child: const Text('Hapus Semua'),
+            child: const Text(
+              'Ya, hapus',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
