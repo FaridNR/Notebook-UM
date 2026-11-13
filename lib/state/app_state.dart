@@ -276,8 +276,30 @@ class AppState extends ChangeNotifier {
 
   void login(String email, String password) {
     _isLoggedIn = true;
-    notifyListeners();
+    unawaited(_repository.setSetting('user_email', email));
+    unawaited(_repository.setSetting('user_password', password));
     unawaited(_repository.setSetting('is_logged_in', '1'));
+    notifyListeners();
+  }
+
+  void register({
+    required String name,
+    required String email,
+    required String password,
+    String? nim,
+    String? prodi,
+  }) {
+    _displayName = name;
+    if (nim != null && nim.isNotEmpty) _nim = nim;
+    if (prodi != null && prodi.isNotEmpty) _prodi = prodi;
+    _isLoggedIn = true;
+    unawaited(_repository.setSetting('display_name', name));
+    if (nim != null && nim.isNotEmpty) unawaited(_repository.setSetting('nim', nim));
+    if (prodi != null && prodi.isNotEmpty) unawaited(_repository.setSetting('prodi', prodi));
+    unawaited(_repository.setSetting('user_email', email));
+    unawaited(_repository.setSetting('user_password', password));
+    unawaited(_repository.setSetting('is_logged_in', '1'));
+    notifyListeners();
   }
 
   // Task Completion & Undo
@@ -405,6 +427,7 @@ class AppState extends ChangeNotifier {
     }
     await _repository.updateCourse(updatedCourse);
     _courses = await _repository.getCourses();
+    _tasks = await _repository.getTasks();
     _safeNotifyListeners();
   }
 

@@ -297,6 +297,280 @@ class CoursesScreen extends StatelessWidget {
     );
   }
 
+  void _showEditCourseSheet(BuildContext context, Course course) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final codeController = TextEditingController(text: course.code);
+    final nameController = TextEditingController(text: course.name);
+    final lecturerController = TextEditingController(text: course.lecturer);
+    final sksController = TextEditingController(text: '${course.sks}');
+    CourseTone selectedTone = course.tone;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+            final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+            final inputBg = isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF27272A) : const Color(0xFFE5E8EC),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Edit Mata Kuliah',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Perbarui data mata kuliah, kode, dosen, SKS, atau warna',
+                      style: TextStyle(fontSize: 12, color: textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Kode Mata Kuliah
+                    Text('Kode Mata Kuliah', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
+                    const SizedBox(height: 6),
+                    Container(
+                      decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(12)),
+                      child: TextField(
+                        controller: codeController,
+                        style: TextStyle(fontSize: 13, color: textPrimary),
+                        decoration: InputDecoration(
+                          hintText: 'Contoh: 111500 atau IF1101',
+                          hintStyle: TextStyle(fontSize: 12, color: textSecondary),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Nama Matkul
+                    Text('Nama Mata Kuliah', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
+                    const SizedBox(height: 6),
+                    Container(
+                      decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(12)),
+                      child: TextField(
+                        controller: nameController,
+                        style: TextStyle(fontSize: 13, color: textPrimary),
+                        decoration: InputDecoration(
+                          hintText: 'Contoh: Basis Data Lanjut',
+                          hintStyle: TextStyle(fontSize: 12, color: textSecondary),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Dosen Pengampu
+                    Text('Dosen Pengampu', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
+                    const SizedBox(height: 6),
+                    Container(
+                      decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(12)),
+                      child: TextField(
+                        controller: lecturerController,
+                        style: TextStyle(fontSize: 13, color: textPrimary),
+                        decoration: InputDecoration(
+                          hintText: 'Contoh: Dr. Budi Santoso, M.Kom.',
+                          hintStyle: TextStyle(fontSize: 12, color: textSecondary),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // SKS
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Beban SKS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: inputBg,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  final cur = int.tryParse(sksController.text) ?? 3;
+                                  if (cur > 1) {
+                                    setSheetState(() => sksController.text = '${cur - 1}');
+                                  }
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  alignment: Alignment.center,
+                                  child: Icon(Icons.remove, size: 16, color: textPrimary),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 44,
+                                child: TextField(
+                                  controller: sksController,
+                                  textAlign: TextAlign.center,
+                                  keyboardType: TextInputType.number,
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  final cur = int.tryParse(sksController.text) ?? 3;
+                                  setSheetState(() => sksController.text = '${cur + 1}');
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  alignment: Alignment.center,
+                                  child: Icon(Icons.add, size: 16, color: textPrimary),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Warna / Tone
+                    Text('Identitas Warna', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: CourseTone.values.map((tone) {
+                        final isSel = selectedTone == tone;
+                        Color c;
+                        switch (tone) {
+                          case CourseTone.amber:
+                            c = AppColors.amberAccent;
+                            break;
+                          case CourseTone.blue:
+                            c = AppColors.blueAccent;
+                            break;
+                          case CourseTone.emerald:
+                            c = AppColors.emeraldAccent;
+                            break;
+                          case CourseTone.purple:
+                            c = AppColors.purpleAccent;
+                            break;
+                          case CourseTone.zinc:
+                            c = const Color(0xFF52525B);
+                            break;
+                        }
+                        return GestureDetector(
+                          onTap: () => setSheetState(() => selectedTone = tone),
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: c,
+                              shape: BoxShape.circle,
+                              border: isSel ? Border.all(color: textPrimary, width: 2.5) : null,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Submit Button
+                    GestureDetector(
+                      onTap: () {
+                        final code = codeController.text.trim();
+                        final name = nameController.text.trim();
+                        final lecturer = lecturerController.text.trim();
+
+                        if (name.isEmpty) {
+                          appState.showToast('Nama mata kuliah harus diisi');
+                          return;
+                        }
+
+                        final courseCode = code.isNotEmpty ? code : course.code;
+                        final sks = int.tryParse(sksController.text.trim()) ?? course.sks;
+                        if (sks <= 0) {
+                          appState.showToast('Beban SKS minimal 1');
+                          return;
+                        }
+
+                        final updatedCourse = course.copyWith(
+                          code: courseCode,
+                          name: name,
+                          lecturer: lecturer.isEmpty ? 'Dosen Belum Ditentukan' : lecturer,
+                          sks: sks,
+                          tone: selectedTone,
+                        );
+
+                        appState.updateCourse(updatedCourse);
+                        Navigator.pop(ctx);
+                        appState.showToast('Mata kuliah $name berhasil diperbarui');
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white : const Color(0xFF090A0C),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Simpan Perubahan',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showManageCourseSheet(BuildContext context, Course course) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -349,7 +623,20 @@ class CoursesScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(ctx)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Edit Mata Kuliah',
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _showEditCourseSheet(context, course);
+                          },
+                        ),
+                        IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(ctx)),
+                      ],
+                    ),
                   ],
                 ),
               const SizedBox(height: 8),
@@ -439,6 +726,35 @@ class CoursesScreen extends StatelessWidget {
                       Icon(Icons.add, size: 16, color: textPrimary),
                       const SizedBox(width: 6),
                       Text('Tambah Slot Jadwal', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Edit course button
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showEditCourseSheet(context, course);
+                },
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: insetTone,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF3F3F46) : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.edit_outlined, size: 16, color: textPrimary),
+                      const SizedBox(width: 6),
+                      Text('Edit Informasi Mata Kuliah', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
                     ],
                   ),
                 ),

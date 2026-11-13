@@ -6,7 +6,9 @@ import 'package:notebook_um/core/time/time_service.dart';
 import 'package:notebook_um/main.dart';
 import 'package:notebook_um/models/schedule_slot.dart';
 import 'package:notebook_um/models/task.dart';
+import 'package:notebook_um/screens/auth_screen.dart';
 import 'package:notebook_um/screens/courses_screen.dart';
+import 'package:notebook_um/screens/schedule_screen.dart';
 import 'package:notebook_um/screens/tasks_screen.dart';
 import 'package:notebook_um/widgets/edit_task_sheet.dart';
 import 'package:notebook_um/widgets/slot_form_sheet.dart';
@@ -410,6 +412,153 @@ void main() {
       final nextMin = TimeService.timeToMinutes(todaySlots[i + 1].startTime);
       expect(curMin <= nextMin, isTrue, reason: 'Slot $i ($curMin) harus <= slot ${i + 1} ($nextMin)');
     }
+
+    appState.dispose();
+  });
+
+  testWidgets('ScheduleScreen Tampilan Pekan Ini menampilkan nama mata kuliah bukan hanya kode matkul', (WidgetTester tester) async {
+    final appState = AppState();
+    await appState.loadDbFuture;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ScheduleScreen(appState: appState),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Switch ke tampilan Pekan Ini
+    final pekanIniChip = find.text('Pekan Ini');
+    expect(pekanIniChip, findsOneWidget);
+    await tester.tap(pekanIniChip);
+    await tester.pumpAndSettle();
+
+    // Verifikasi bahwa nama mata kuliah tampil di list pekan ini (contoh: Sistem Manajemen Basis Data pada hari Senin)
+    expect(find.text('Sistem Manajemen Basis Data'), findsWidgets);
+
+    appState.dispose();
+  });
+
+  testWidgets('Fitur Edit Mata Kuliah di CoursesScreen membuka form edit dan menyimpan perubahan', (WidgetTester tester) async {
+    final appState = AppState();
+    await appState.loadDbFuture;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CoursesScreen(appState: appState),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap "Kelola Matkul →" pada salah satu kartu
+    final kelolaBtn = find.text('Kelola Matkul →');
+    expect(kelolaBtn, findsWidgets);
+    await tester.tap(kelolaBtn.first);
+    await tester.pumpAndSettle();
+
+    // Verifikasi tombol "Edit Informasi Mata Kuliah"
+    final editInfoBtn = find.text('Edit Informasi Mata Kuliah');
+    expect(editInfoBtn, findsOneWidget);
+    await tester.tap(editInfoBtn);
+    await tester.pumpAndSettle();
+
+    // Verifikasi modal Edit Mata Kuliah terbuka
+    expect(find.text('Edit Mata Kuliah'), findsOneWidget);
+    expect(find.text('Simpan Perubahan'), findsOneWidget);
+
+    appState.dispose();
+  });
+
+  testWidgets('Fitur Bagi Catatan Tugas di TasksScreen membuka modal berbagi dengan kanal media sosial & clipboard', (WidgetTester tester) async {
+    final appState = AppState();
+    await appState.loadDbFuture;
+
+    final task = CourseTask(
+      id: 'task-test-share',
+      title: 'Tugas Proyek IFB5J',
+      courseId: 'course-111500',
+      courseCode: '111500',
+      courseName: 'Sistem Manajemen Basis Data',
+      priority: TaskPriority.high,
+      dueCategory: TaskDueCategory.urgent,
+      dueText: 'Hari ini, 23:59 WITA',
+      notes: 'Desain ERD dan implementasi DDL MySQL',
+    );
+    await appState.addTask(task);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TasksScreen(appState: appState),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Cari icon share pada task card
+    final shareIcons = find.byIcon(Icons.share_outlined);
+    expect(shareIcons, findsWidgets);
+    await tester.tap(shareIcons.first);
+    await tester.pumpAndSettle();
+
+    // Verifikasi bottom sheet Bagi Catatan Tugas muncul
+    expect(find.text('Bagi Catatan Tugas'), findsOneWidget);
+    expect(find.text('Pilih Saluran Berbagi'), findsOneWidget);
+    expect(find.text('WhatsApp'), findsOneWidget);
+    expect(find.text('Telegram'), findsOneWidget);
+    expect(find.text('LINE'), findsOneWidget);
+    expect(find.text('Instagram'), findsOneWidget);
+    expect(find.text('Catatan'), findsOneWidget);
+    expect(find.text('Salin Semua Teks (Papan Klip)'), findsOneWidget);
+
+    // Tap opsi WhatsApp
+    await tester.tap(find.text('WhatsApp'));
+    await tester.pumpAndSettle();
+
+    // Modal tertutup setelah disalin
+    expect(find.text('Bagi Catatan Tugas'), findsNothing);
+
+    appState.dispose();
+  });
+
+  testWidgets('AuthScreen memiliki tab Masuk dan Registrasi serta pre-filled akun faridnoorrahman@gmail.com / 0542411640', (WidgetTester tester) async {
+    final appState = AppState();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AuthScreen(appState: appState),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verifikasi tab Masuk dan Registrasi
+    expect(find.text('Masuk'), findsOneWidget);
+    expect(find.text('Registrasi'), findsOneWidget);
+
+    // Verifikasi email & password pre-filled pada mode Masuk
+    expect(find.text('faridnoorrahman@gmail.com'), findsWidgets);
+    expect(find.text('0542411640'), findsWidgets);
+
+    // Switch ke tab Registrasi
+    await tester.tap(find.text('Registrasi'));
+    await tester.pumpAndSettle();
+
+    // Verifikasi field mode Registrasi
+    expect(find.text('Registrasi Akun NoteBook UM'), findsOneWidget);
+    expect(find.text('Nama Lengkap'), findsOneWidget);
+    expect(find.text('NIM (Nomor Induk Mahasiswa)'), findsOneWidget);
+    expect(find.text('Daftar Akun Baru'), findsOneWidget);
+
+    // Tap tombol Daftar Akun Baru
+    await tester.ensureVisible(find.text('Daftar Akun Baru'));
+    await tester.tap(find.text('Daftar Akun Baru'));
+    await tester.pumpAndSettle();
+
+    expect(appState.isLoggedIn, isTrue);
 
     appState.dispose();
   });

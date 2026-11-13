@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../models/task.dart';
@@ -34,6 +35,270 @@ class _TasksScreenState extends State<TasksScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  String _formatTaskShareText(CourseTask task) {
+    final course = widget.appState.getCourse(task.courseId);
+    final courseName = course?.name ?? task.courseName;
+    final buffer = StringBuffer();
+    buffer.writeln('📋 *CATATAN TUGAS KULIAH*');
+    buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln('📌 *Judul*: ${task.title}');
+    buffer.writeln('📚 *Mata Kuliah*: $courseName (${task.courseCode})');
+    buffer.writeln('⏰ *Tenggat*: ${task.dueText}');
+    buffer.writeln('⚡ *Prioritas*: ${task.priority.name.toUpperCase()}');
+    buffer.writeln('📊 *Status*: ${task.isCompleted ? "Sudah Selesai ✅" : "Belum Selesai ⏳"}');
+    if (task.notes.trim().isNotEmpty) {
+      buffer.writeln('\n📝 *Catatan / Instruksi*:');
+      buffer.writeln(task.notes.trim());
+    }
+    buffer.writeln('\n— Dikirim via NoteBook UM (Informatika IFB5J)');
+    return buffer.toString();
+  }
+
+  void _showShareTaskSheet(BuildContext context, CourseTask task) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final bgCard = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final insetTone = isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep;
+    final fullText = _formatTaskShareText(task);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF27272A) : const Color(0xFFE5E8EC),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bagi Catatan Tugas',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Bagikan catatan tugas ke teman kuliah atau arsipkan',
+                          style: TextStyle(fontSize: 11.5, color: textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Preview Box
+              Container(
+                padding: const EdgeInsets.all(12),
+                constraints: const BoxConstraints(maxHeight: 140),
+                decoration: BoxDecoration(
+                  color: insetTone,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF27272A) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  child: Text(
+                    fullText,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11.5,
+                      color: textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Text(
+                'Pilih Saluran Berbagi',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Channels Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildShareOptionItem(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    label: 'WhatsApp',
+                    color: const Color(0xFF25D366),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: fullText));
+                      Navigator.pop(ctx);
+                      widget.appState.showToast('Format WhatsApp disalin! Tempel ke chat tujuan');
+                    },
+                    isDark: isDark,
+                  ),
+                  _buildShareOptionItem(
+                    icon: Icons.send_rounded,
+                    label: 'Telegram',
+                    color: const Color(0xFF229ED9),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: fullText));
+                      Navigator.pop(ctx);
+                      widget.appState.showToast('Format Telegram disalin! Tempel ke chat/grup');
+                    },
+                    isDark: isDark,
+                  ),
+                  _buildShareOptionItem(
+                    icon: Icons.forum_outlined,
+                    label: 'LINE',
+                    color: const Color(0xFF06C755),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: fullText));
+                      Navigator.pop(ctx);
+                      widget.appState.showToast('Format LINE disalin! Tempel ke obrolan');
+                    },
+                    isDark: isDark,
+                  ),
+                  _buildShareOptionItem(
+                    icon: Icons.camera_alt_outlined,
+                    label: 'Instagram',
+                    color: const Color(0xFFE1306C),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: fullText));
+                      Navigator.pop(ctx);
+                      widget.appState.showToast('Ringkasan tugas disalin untuk Instagram DM/Story');
+                    },
+                    isDark: isDark,
+                  ),
+                  _buildShareOptionItem(
+                    icon: Icons.note_alt_outlined,
+                    label: 'Catatan',
+                    color: const Color(0xFFF59E0B),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: fullText));
+                      Navigator.pop(ctx);
+                      widget.appState.showToast('Teks disalin untuk disimpan ke Aplikasi Catatan');
+                    },
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Quick Copy Button
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: fullText));
+                  Navigator.pop(ctx);
+                  widget.appState.showToast('Seluruh teks catatan tugas disalin ke papan klip');
+                },
+                child: Container(
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white : const Color(0xFF090A0C),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.copy_rounded,
+                        size: 16,
+                        color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Salin Semua Teks (Papan Klip)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShareOptionItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: isDark ? 0.15 : 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: color.withValues(alpha: 0.3),
+                width: 1.2,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showTaskDetailSheet(BuildContext context, CourseTask task) {
@@ -87,6 +352,14 @@ class _TasksScreenState extends State<TasksScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      IconButton(
+                        icon: const Icon(Icons.share_outlined, size: 20),
+                        tooltip: 'Bagi Catatan Tugas',
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showShareTaskSheet(context, task);
+                        },
+                      ),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined, size: 20),
                         tooltip: 'Ubah Tugas',
@@ -901,6 +1174,15 @@ class _TasksScreenState extends State<TasksScreen> {
                           style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textSecondary),
                         ),
                       ],
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => _showShareTaskSheet(context, task),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                          child: Icon(Icons.share_outlined, size: 14, color: textSecondary),
+                        ),
+                      ),
                     ],
                   ),
                 ],

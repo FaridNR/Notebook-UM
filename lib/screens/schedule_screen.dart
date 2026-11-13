@@ -604,16 +604,50 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 Text('Tidak ada jadwal kuliah', style: TextStyle(fontSize: 11, color: textSecondary))
               else
                 ...daySlots.map((s) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(color: insetTone, borderRadius: BorderRadius.circular(10)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('${s.courseCode} (${s.startTime} – ${s.endTime})', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: textPrimary)),
-                        Text(s.room, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: textPrimary)),
-                      ],
+                  return GestureDetector(
+                    onTap: () {
+                      final c = widget.appState.getCourse(s.courseId);
+                      _showSlotDetailsModal(context, s, c);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                      decoration: BoxDecoration(color: insetTone, borderRadius: BorderRadius.circular(10)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  s.courseName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${s.startTime} – ${s.endTime} WITA',
+                                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF27272A) : const Color(0xFFE5E7EB),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              s.room,
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: textPrimary),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }),

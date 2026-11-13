@@ -189,6 +189,8 @@ const Map<String, String> defaultProfileSettings = {
   'prodi': 'S1 Informatika • IFB5J',
   'campus': 'Universitas Mulia',
   'timezone': 'Asia/Makassar',
+  'user_email': 'faridnoorrahman@gmail.com',
+  'user_password': '0542411640',
   'is_logged_in': '1',
   'is_reminder_h24': '1',
   'is_reminder_h1': '1',

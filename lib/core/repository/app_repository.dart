@@ -113,18 +113,38 @@ class AppRepository {
 
   Future<void> updateCourse(Course course) async {
     final db = await _db;
-    await db.update(
-      'courses',
-      {
-        'code': course.code,
-        'name': course.name,
-        'lecturer': course.lecturer,
-        'sks': course.sks,
-        'tone': course.tone.name,
-      },
-      where: 'id = ?',
-      whereArgs: [course.id],
-    );
+    await db.transaction((txn) async {
+      await txn.update(
+        'courses',
+        {
+          'code': course.code,
+          'name': course.name,
+          'lecturer': course.lecturer,
+          'sks': course.sks,
+          'tone': course.tone.name,
+        },
+        where: 'id = ?',
+        whereArgs: [course.id],
+      );
+      await txn.update(
+        'schedule_slots',
+        {
+          'course_code': course.code,
+          'course_name': course.name,
+        },
+        where: 'course_id = ?',
+        whereArgs: [course.id],
+      );
+      await txn.update(
+        'tasks',
+        {
+          'course_code': course.code,
+          'course_name': course.name,
+        },
+        where: 'course_id = ?',
+        whereArgs: [course.id],
+      );
+    });
   }
 
   Future<void> deleteCourse(String id) async {
