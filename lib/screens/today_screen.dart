@@ -7,6 +7,7 @@ import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/add_task_sheet.dart';
 import '../widgets/course_badge.dart';
+import '../widgets/slot_form_sheet.dart';
 import 'about_screen.dart';
 
 class TodayScreen extends StatelessWidget {
@@ -31,8 +32,16 @@ class TodayScreen extends StatelessWidget {
     final activeCourse = activeSlot != null ? appState.getCourse(activeSlot.courseId) : null;
     final now = appState.liveNow;
 
-    // Filter urgent tasks (< 24 jam / urgent)
-    final urgentTasks = appState.tasks.where((t) => !t.isCompleted).take(3).toList();
+    // Filter urgent tasks (< 24 jam / urgent / jatuh tempo hari ini)
+    final urgentTasks = appState.tasks.where((t) {
+      if (t.isCompleted) return false;
+      if (t.dueCategory == TaskDueCategory.urgent) return true;
+      if (t.dueAt != null) {
+        final diff = t.dueAt!.difference(now);
+        return diff.inHours < 24;
+      }
+      return false;
+    }).take(3).toList();
 
     // Related task for current active slot
     final relatedTask = activeSlot != null
@@ -371,94 +380,110 @@ class TodayScreen extends StatelessWidget {
 
                             return Opacity(
                               opacity: isCompleted ? 0.55 : 1.0,
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: isOngoing
-                                      ? (isDark ? AppColors.amberDarkBg : AppColors.amberLightBg)
-                                      : insetTone,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 4,
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        color: c?.accentColor ?? AppColors.amberAccent,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  SlotFormSheet.show(
+                                    context,
+                                    appState: appState,
+                                    course: c,
+                                    slotToEdit: slot,
+                                  );
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isOngoing
+                                        ? (isDark ? const Color(0xFF181A20) : const Color(0xFFF1F3F6))
+                                        : insetTone,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isOngoing
+                                          ? (isDark ? const Color(0xFF3F3F46) : const Color(0xFFD4D4D8))
+                                          : (isDark ? const Color(0xFF1E2128) : const Color(0xFFE5E7EB)),
+                                      width: isOngoing ? 1.2 : 0.8,
                                     ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              CourseBadge(code: slot.courseCode, tone: c?.tone ?? CourseTone.zinc),
-                                              const SizedBox(width: 6),
-                                              Expanded(
-                                                child: Text(
-                                                  slot.courseName,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: textPrimary,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 3.5,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: isOngoing
+                                              ? (isDark ? Colors.white : const Color(0xFF090A0C))
+                                              : (isDark ? const Color(0xFF3F3F46) : const Color(0xFFD4D4D8)),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                CourseBadge(code: slot.courseCode, tone: c?.tone ?? CourseTone.zinc),
+                                                const SizedBox(width: 6),
+                                                Expanded(
+                                                  child: Text(
+                                                    slot.courseName,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: textPrimary,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 3),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 3),
+                                            Text(
+                                              '${slot.room} • ${c?.lecturer ?? "-"}',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(fontSize: 11, color: textSecondary),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
                                           Text(
-                                            '${slot.room} • ${c?.lecturer ?? "-"}',
+                                            '${slot.startTime} – ${slot.endTime}',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(fontSize: 11, color: textSecondary),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: isOngoing ? FontWeight.w700 : FontWeight.w500,
+                                              color: isOngoing ? textPrimary : textSecondary,
+                                              decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            isOngoing
+                                                ? 'Aktif Sekarang'
+                                                : (isCompleted ? 'Selesai' : 'Akan Datang'),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: isOngoing ? FontWeight.w700 : FontWeight.w500,
+                                              color: isOngoing
+                                                  ? (isDark ? const Color(0xFFE4E4E7) : const Color(0xFF18181B))
+                                                  : (isCompleted ? textSecondary : textSecondary),
+                                            ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '${slot.startTime} – ${slot.endTime}',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: isOngoing ? FontWeight.w700 : FontWeight.w500,
-                                            color: isOngoing
-                                                ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                                                : textSecondary,
-                                            decoration: isCompleted ? TextDecoration.lineThrough : null,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          isOngoing
-                                              ? 'Aktif Sekarang'
-                                              : (isCompleted ? 'Selesai' : 'Akan Datang'),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
-                                            color: isOngoing
-                                                ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                                                : (isCompleted ? const Color(0xFF10B981) : textSecondary),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
@@ -772,15 +797,13 @@ class TodayScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isOngoing
-              ? (isDark ? AppColors.amberAccent.withValues(alpha: 0.35) : AppColors.amberAccent.withValues(alpha: 0.45))
+              ? (isDark ? const Color(0xFF3F3F46) : const Color(0xFFD4D4D8))
               : (isDark ? const Color(0xFF1E2430) : const Color(0xFFE5E8EC)),
-          width: 1.2,
+          width: isOngoing ? 1.4 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: isOngoing
-                ? (isDark ? AppColors.amberAccent.withValues(alpha: 0.1) : AppColors.amberAccent.withValues(alpha: 0.08))
-                : Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -804,7 +827,9 @@ class TodayScreen extends StatelessWidget {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: isOngoing ? AppColors.amberAccent : const Color(0xFF3B82F6),
+                            color: isOngoing
+                                ? (isDark ? Colors.white : const Color(0xFF090A0C))
+                                : textSecondary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -817,9 +842,7 @@ class TodayScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: isOngoing
-                                  ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                                  : textSecondary,
+                              color: isOngoing ? textPrimary : textSecondary,
                             ),
                           ),
                         ),
@@ -852,6 +875,10 @@ class TodayScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: insetTone,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF27272A) : const Color(0xFFE5E7EB),
+                    width: 0.8,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -896,7 +923,7 @@ class TodayScreen extends StatelessWidget {
                   widthFactor: statusResult.progress,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isOngoing ? AppColors.amberAccent : const Color(0xFF3B82F6),
+                      color: isDark ? Colors.white : const Color(0xFF090A0C),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -912,21 +939,6 @@ class TodayScreen extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: textSecondary),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      statusResult.remainingText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: isOngoing
-                            ? (isDark ? AppColors.amberTextDark : AppColors.amberText)
-                            : textSecondary,
-                      ),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -971,7 +983,7 @@ class TodayScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFFF43F5E),
+                          color: textPrimary,
                         ),
                       ),
                     ],

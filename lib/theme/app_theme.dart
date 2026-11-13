@@ -23,34 +23,34 @@ class AppColors {
   static const Color darkTextSecondary = Color(0xFFA1A1AA);
   static const Color darkTextTertiary = Color(0xFF71717A);
 
-  // Academic Course Colors
-  static const Color amberAccent = Color(0xFFD97706);
-  static const Color amberLightBg = Color(0xFFFFFBEB);
-  static const Color amberDarkBg = Color(0xFF1F1B12);
-  static const Color amberText = Color(0xFFB45309);
-  static const Color amberTextDark = Color(0xFFFCD34D);
+  // Academic Course Colors (Muted Elegant Slate/Zinc Palette)
+  static const Color amberAccent = Color(0xFF78716C);
+  static const Color amberLightBg = Color(0xFFF5F5F4);
+  static const Color amberDarkBg = Color(0xFF1C1917);
+  static const Color amberText = Color(0xFF44403C);
+  static const Color amberTextDark = Color(0xFFD6D3D1);
 
-  static const Color blueAccent = Color(0xFF2563EB);
-  static const Color blueLightBg = Color(0xFFEFF6FF);
-  static const Color blueDarkBg = Color(0xFF131B2B);
-  static const Color blueText = Color(0xFF1D4ED8);
-  static const Color blueTextDark = Color(0xFF93C5FD);
+  static const Color blueAccent = Color(0xFF64748B);
+  static const Color blueLightBg = Color(0xFFF1F5F9);
+  static const Color blueDarkBg = Color(0xFF131722);
+  static const Color blueText = Color(0xFF334155);
+  static const Color blueTextDark = Color(0xFFCBD5E1);
 
-  static const Color emeraldAccent = Color(0xFF059669);
-  static const Color emeraldLightBg = Color(0xFFECFDF5);
-  static const Color emeraldDarkBg = Color(0xFF10221B);
-  static const Color emeraldText = Color(0xFF047857);
-  static const Color emeraldTextDark = Color(0xFF6EE7B7);
+  static const Color emeraldAccent = Color(0xFF52525B);
+  static const Color emeraldLightBg = Color(0xFFF4F4F5);
+  static const Color emeraldDarkBg = Color(0xFF18181B);
+  static const Color emeraldText = Color(0xFF27272A);
+  static const Color emeraldTextDark = Color(0xFFD4D4D8);
 
-  static const Color purpleAccent = Color(0xFF7C3AED);
-  static const Color purpleLightBg = Color(0xFFFAF5FF);
-  static const Color purpleDarkBg = Color(0xFF1C1428);
-  static const Color purpleText = Color(0xFF6D28D9);
-  static const Color purpleTextDark = Color(0xFFC084FC);
+  static const Color purpleAccent = Color(0xFF71717A);
+  static const Color purpleLightBg = Color(0xFFF4F4F5);
+  static const Color purpleDarkBg = Color(0xFF18181B);
+  static const Color purpleText = Color(0xFF3F3F46);
+  static const Color purpleTextDark = Color(0xFFE4E4E7);
 
   static const Color roseAccent = Color(0xFFE11D48);
-  static const Color roseLightBg = Color(0xFFFFF5F5);
-  static const Color roseDarkBg = Color(0xFF1C1214);
+  static const Color roseLightBg = Color(0xFFFFF1F2);
+  static const Color roseDarkBg = Color(0xFF201216);
   static const Color roseText = Color(0xFFBE123C);
   static const Color roseTextDark = Color(0xFFFDA4AF);
 }

@@ -5,6 +5,7 @@ import '../models/schedule_slot.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/course_badge.dart';
+import '../widgets/slot_form_sheet.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final AppState appState;
@@ -34,194 +35,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return;
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    Course selectedCourse = widget.appState.courses.first;
-    int day = _selectedDay;
-    final startController = TextEditingController(text: '13:00');
-    final endController = TextEditingController(text: '15:30');
-    final roomController = TextEditingController(text: 'Lab 1');
-    final dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setSlotState) {
-            final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-            final inputBg = isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep;
-
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Tambah Slot Jadwal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary)),
-                    const SizedBox(height: 12),
-
-                    Text('Mata Kuliah', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(10)),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedCourse.id,
-                          isExpanded: true,
-                          dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                          items: widget.appState.courses.map((c) {
-                            return DropdownMenuItem(
-                              value: c.id,
-                              child: Text('${c.code} • ${c.name}', style: TextStyle(fontSize: 13, color: textPrimary)),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setSlotState(() {
-                                selectedCourse = widget.appState.courses.firstWhere((c) => c.id == val);
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Text('Pilih Hari', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                    const SizedBox(height: 6),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(7, (i) {
-                          final d = i + 1;
-                          final isSel = day == d;
-                          return GestureDetector(
-                            onTap: () => setSlotState(() => day = d),
-                            child: Container(
-                              margin: const EdgeInsets.only(right: 6),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: isSel ? (isDark ? Colors.white : const Color(0xFF090A0C)) : inputBg,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                dayNames[i],
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSel ? (isDark ? const Color(0xFF090A0C) : Colors.white) : textPrimary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Jam Mulai', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                              const SizedBox(height: 6),
-                              Container(
-                                decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(10)),
-                                child: TextField(
-                                  controller: startController,
-                                  style: TextStyle(fontSize: 13, color: textPrimary),
-                                  decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Jam Selesai', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                              const SizedBox(height: 6),
-                              Container(
-                                decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(10)),
-                                child: TextField(
-                                  controller: endController,
-                                  style: TextStyle(fontSize: 13, color: textPrimary),
-                                  decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    Text('Ruangan', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                    const SizedBox(height: 6),
-                    Container(
-                      decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(10)),
-                      child: TextField(
-                        controller: roomController,
-                        style: TextStyle(fontSize: 13, color: textPrimary),
-                        decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    GestureDetector(
-                      onTap: () {
-                        final slot = ScheduleSlot(
-                          id: 'slot-${DateTime.now().millisecondsSinceEpoch}',
-                          courseId: selectedCourse.id,
-                          courseCode: selectedCourse.code,
-                          courseName: selectedCourse.name,
-                          day: day,
-                          dayName: dayNames[day - 1],
-                          startTime: startController.text.trim(),
-                          endTime: endController.text.trim(),
-                          room: roomController.text.trim(),
-                          durationMinutes: 100,
-                        );
-                        widget.appState.addSlot(selectedCourse.id, slot);
-                        Navigator.pop(ctx);
-                      },
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.white : const Color(0xFF090A0C),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Simpan Slot',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? const Color(0xFF090A0C) : Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+    SlotFormSheet.show(
+      context,
+      appState: widget.appState,
+      defaultDay: _selectedDay,
     );
   }
 
@@ -258,8 +75,49 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               const SizedBox(height: 12),
               Text('${slot.dayName} • ${slot.startTime} – ${slot.endTime} WITA', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
               Text('Ruang: ${slot.room} • Dosen: ${course?.lecturer ?? "-"}', style: TextStyle(fontSize: 12, color: textSecondary)),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
+              // Edit Slot Button
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  SlotFormSheet.show(
+                    context,
+                    appState: widget.appState,
+                    course: course,
+                    slotToEdit: slot,
+                  );
+                },
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF27272A) : const Color(0xFFE5E7EB),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.edit_outlined, size: 16, color: textPrimary),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Edit Slot Jadwal',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Hapus Slot Button
               GestureDetector(
                 onTap: () {
                   _showDeleteSlotConfirmDialog(context, slot, ctx);
@@ -361,7 +219,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         }
       }
     }
-    selectedDaySlots.sort((a, b) => a.startTime.compareTo(b.startTime));
+    selectedDaySlots.sort((a, b) => TimeService.timeToMinutes(a.startTime).compareTo(TimeService.timeToMinutes(b.startTime)));
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
@@ -614,10 +472,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 5,
+                  width: 4,
                   height: 110,
                   decoration: BoxDecoration(
-                    color: course?.accentColor ?? AppColors.amberAccent,
+                    color: statusResult.status == ClassStatus.berlangsung
+                        ? (isDark ? Colors.white : const Color(0xFF090A0C))
+                        : (isDark ? const Color(0xFF3F3F46) : const Color(0xFFD4D4D8)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -645,7 +505,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       color: statusResult.status == ClassStatus.berlangsung
-                                          ? AppColors.amberAccent
+                                          ? textPrimary
                                           : textSecondary,
                                     ),
                                   ),
@@ -723,7 +583,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             if (s.day == d) daySlots.add(s);
           }
         }
-        daySlots.sort((a, b) => a.startTime.compareTo(b.startTime));
+        daySlots.sort((a, b) => TimeService.timeToMinutes(a.startTime).compareTo(TimeService.timeToMinutes(b.startTime)));
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -799,7 +659,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   width: 4,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: isSelected ? (isDark ? Colors.black : Colors.white) : AppColors.amberAccent,
+                    color: isSelected
+                        ? (isDark ? Colors.black : Colors.white)
+                        : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                     shape: BoxShape.circle,
                   ),
                 ),

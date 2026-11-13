@@ -42,11 +42,72 @@ class TimeService {
     return DateTime(wita.year, wita.month, wita.day, wita.hour, wita.minute, wita.second);
   }
 
+  /// Parses "HH:mm" time string into total minutes from 00:00 (e.g. "19:30" -> 1170, "24:00" -> 1440)
+  static int timeToMinutes(String timeStr) {
+    final parts = timeStr.trim().split(':');
+    if (parts.length < 2) return 0;
+    final hour = int.tryParse(parts[0]) ?? 0;
+    final minute = int.tryParse(parts[1]) ?? 0;
+    return (hour * 60) + minute;
+  }
+
+  /// Formats total minutes into "HH:mm" (e.g. 1170 -> "19:30", 1440 -> "24:00")
+  static String minutesToTime(int totalMinutes) {
+    final clamped = totalMinutes.clamp(0, 1440);
+    final hour = clamped ~/ 60;
+    final minute = clamped % 60;
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+  }
+
+  /// Validates whether a time slot is valid and does not exceed 24:00 (1440 minutes)
+  static bool isValidTimeSlot(String start, String end, {int maxMinutes = 1440}) {
+    final startMin = timeToMinutes(start);
+    final endMin = timeToMinutes(end);
+    if (startMin < 0 || endMin <= startMin) return false;
+    if (endMin > maxMinutes) return false;
+    return true;
+  }
+
+  /// Checks if a proposed time slot collides with any existing slots on the same day.
+  /// Overlap condition: startA < endB && endA > startB.
+  /// Returns the conflicting ScheduleSlot if found, or null if no conflict.
+  static ScheduleSlot? findSlotCollision({
+    required int day,
+    required String startTime,
+    required String endTime,
+    required List<ScheduleSlot> existingSlots,
+    String? excludeSlotId,
+  }) {
+    final newStart = timeToMinutes(startTime);
+    final newEnd = timeToMinutes(endTime);
+    if (newStart >= newEnd) return null;
+
+    for (final slot in existingSlots) {
+      if (slot.day != day) continue;
+      if (excludeSlotId != null && slot.id == excludeSlotId) continue;
+
+      final existingStart = timeToMinutes(slot.startTime);
+      final existingEnd = timeToMinutes(slot.endTime);
+
+      if (newStart < existingEnd && newEnd > existingStart) {
+        return slot;
+      }
+    }
+    return null;
+  }
+
   /// Parses "HH:mm" time string into a DateTime on the target date in local/profile time
   static DateTime timeToDateTime(DateTime baseDate, String timeStr) {
     final parts = timeStr.trim().split(':');
     final hour = int.parse(parts[0]);
     final minute = int.parse(parts[1]);
+    if (hour == 24) {
+      final nextDay = baseDate.add(const Duration(days: 1));
+      if (baseDate.isUtc) {
+        return DateTime.utc(nextDay.year, nextDay.month, nextDay.day, 0, minute);
+      }
+      return DateTime(nextDay.year, nextDay.month, nextDay.day, 0, minute);
+    }
     if (baseDate.isUtc) {
       return DateTime.utc(baseDate.year, baseDate.month, baseDate.day, hour, minute);
     }

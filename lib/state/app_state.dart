@@ -181,6 +181,31 @@ class AppState extends ChangeNotifier {
     return todaySlots.last;
   }
 
+  /// Mengambil semua slot jadwal dari seluruh mata kuliah aktif
+  List<ScheduleSlot> get allSlots {
+    final list = <ScheduleSlot>[];
+    for (final course in _courses) {
+      list.addAll(course.slots);
+    }
+    return list;
+  }
+
+  /// Memeriksa apakah suatu slot bertabrakan dengan slot yang ada di hari yang sama
+  ScheduleSlot? checkSlotCollision({
+    required int day,
+    required String startTime,
+    required String endTime,
+    String? excludeSlotId,
+  }) {
+    return TimeService.findSlotCollision(
+      day: day,
+      startTime: startTime,
+      endTime: endTime,
+      existingSlots: allSlots,
+      excludeSlotId: excludeSlotId,
+    );
+  }
+
   List<ScheduleSlot> getTodaySlots() {
     final todayWeekday = _liveNow.weekday;
     final list = <ScheduleSlot>[];
@@ -191,7 +216,7 @@ class AppState extends ChangeNotifier {
         }
       }
     }
-    list.sort((a, b) => a.startTime.compareTo(b.startTime));
+    list.sort((a, b) => TimeService.timeToMinutes(a.startTime).compareTo(TimeService.timeToMinutes(b.startTime)));
     return list;
   }
 

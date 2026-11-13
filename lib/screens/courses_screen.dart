@@ -4,6 +4,7 @@ import '../models/schedule_slot.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/course_badge.dart';
+import '../widgets/slot_form_sheet.dart';
 
 class CoursesScreen extends StatelessWidget {
   final AppState appState;
@@ -18,7 +19,7 @@ class CoursesScreen extends StatelessWidget {
     final codeController = TextEditingController();
     final nameController = TextEditingController();
     final lecturerController = TextEditingController();
-    int sks = 3;
+    final sksController = TextEditingController(text: '3');
     CourseTone selectedTone = CourseTone.blue;
 
     showModalBottomSheet(
@@ -132,32 +133,64 @@ class CoursesScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Beban SKS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                        Row(
-                          children: [1, 2, 3, 4, 6].map((val) {
-                            final isSel = sks == val;
-                            return GestureDetector(
-                              onTap: () => setSheetState(() => sks = val),
-                              child: Container(
-                                margin: const EdgeInsets.only(left: 6),
-                                width: 34,
-                                height: 34,
-                                decoration: BoxDecoration(
-                                  color: isSel ? (isDark ? Colors.white : const Color(0xFF090A0C)) : inputBg,
-                                  borderRadius: BorderRadius.circular(8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Beban SKS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
+                            const SizedBox(height: 2),
+                            Text('Bebas isi jumlah SKS tanpa batas', style: TextStyle(fontSize: 11, color: textSecondary)),
+                          ],
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: inputBg,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  final cur = int.tryParse(sksController.text) ?? 3;
+                                  if (cur > 1) {
+                                    setSheetState(() => sksController.text = '${cur - 1}');
+                                  }
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  alignment: Alignment.center,
+                                  child: Icon(Icons.remove, size: 16, color: textPrimary),
                                 ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '$val',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: isSel ? (isDark ? const Color(0xFF090A0C) : Colors.white) : textPrimary,
+                              ),
+                              SizedBox(
+                                width: 44,
+                                child: TextField(
+                                  controller: sksController,
+                                  textAlign: TextAlign.center,
+                                  keyboardType: TextInputType.number,
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 8),
                                   ),
                                 ),
                               ),
-                            );
-                          }).toList(),
+                              GestureDetector(
+                                onTap: () {
+                                  final cur = int.tryParse(sksController.text) ?? 3;
+                                  setSheetState(() => sksController.text = '${cur + 1}');
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  alignment: Alignment.center,
+                                  child: Icon(Icons.add, size: 16, color: textPrimary),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -211,9 +244,17 @@ class CoursesScreen extends StatelessWidget {
                         final name = nameController.text.trim();
                         final lecturer = lecturerController.text.trim();
 
-                        if (name.isEmpty) return;
+                        if (name.isEmpty) {
+                          appState.showToast('Nama mata kuliah harus diisi');
+                          return;
+                        }
 
                         final courseCode = code.isNotEmpty ? code : 'MK';
+                        final sks = int.tryParse(sksController.text.trim()) ?? 3;
+                        if (sks <= 0) {
+                          appState.showToast('Beban SKS minimal 1');
+                          return;
+                        }
 
                         final newCourse = Course(
                           id: 'course-${DateTime.now().millisecondsSinceEpoch}',
@@ -352,6 +393,19 @@ class CoursesScreen extends StatelessWidget {
                               slot.room,
                               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary),
                             ),
+                            const SizedBox(width: 10),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                SlotFormSheet.show(
+                                  context,
+                                  appState: appState,
+                                  course: course,
+                                  slotToEdit: slot,
+                                );
+                              },
+                              child: Icon(Icons.edit_outlined, size: 18, color: textSecondary),
+                            ),
                             const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () => _confirmDeleteSlot(context, course.id, slot),
@@ -424,168 +478,10 @@ class CoursesScreen extends StatelessWidget {
   }
 
   void _showAddSlotSheet(BuildContext context, Course course) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    int selectedDay = 1; // 1 = Senin
-    final startController = TextEditingController(text: '08:00');
-    final endController = TextEditingController(text: '10:30');
-    final roomController = TextEditingController(text: 'Lab 1');
-
-    final dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setSlotState) {
-            final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-            final inputBg = isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep;
-
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Tambah Slot Jadwal: ${course.code}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary)),
-                  const SizedBox(height: 14),
-
-                  Text('Pilih Hari', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                  const SizedBox(height: 6),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(7, (i) {
-                        final d = i + 1;
-                        final isSel = selectedDay == d;
-                        return GestureDetector(
-                          onTap: () => setSlotState(() => selectedDay = d),
-                          child: Container(
-                            margin: const EdgeInsets.only(right: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSel ? (isDark ? Colors.white : const Color(0xFF090A0C)) : inputBg,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              dayNames[i],
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: isSel ? (isDark ? const Color(0xFF090A0C) : Colors.white) : textPrimary,
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Jam Mulai', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                            const SizedBox(height: 6),
-                            Container(
-                              decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(10)),
-                              child: TextField(
-                                controller: startController,
-                                style: TextStyle(fontSize: 13, color: textPrimary),
-                                decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Jam Selesai', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                            const SizedBox(height: 6),
-                            Container(
-                              decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(10)),
-                              child: TextField(
-                                controller: endController,
-                                style: TextStyle(fontSize: 13, color: textPrimary),
-                                decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  Text('Ruang Kuliah', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary)),
-                  const SizedBox(height: 6),
-                  Container(
-                    decoration: BoxDecoration(color: inputBg, borderRadius: BorderRadius.circular(10)),
-                    child: TextField(
-                      controller: roomController,
-                      style: TextStyle(fontSize: 13, color: textPrimary),
-                      decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  GestureDetector(
-                    onTap: () {
-                      final newSlot = ScheduleSlot(
-                        id: 'slot-${DateTime.now().millisecondsSinceEpoch}',
-                        courseId: course.id,
-                        courseCode: course.code,
-                        courseName: course.name,
-                        day: selectedDay,
-                        dayName: dayNames[selectedDay - 1],
-                        startTime: startController.text.trim(),
-                        endTime: endController.text.trim(),
-                        room: roomController.text.trim(),
-                        durationMinutes: 100,
-                      );
-                      appState.addSlot(course.id, newSlot);
-                      Navigator.pop(ctx);
-                    },
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white : const Color(0xFF090A0C),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Simpan Jadwal',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF090A0C) : Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-      },
+    SlotFormSheet.show(
+      context,
+      appState: appState,
+      course: course,
     );
   }
 

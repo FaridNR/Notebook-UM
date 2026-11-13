@@ -385,10 +385,12 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: _selectedCourse != null
-                        ? (isDark ? AppColors.amberDarkBg : AppColors.amberLightBg)
-                        : inputBg,
+                    color: inputBg,
                     borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF27272A) : const Color(0xFFE5E7EB),
+                      width: 1,
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -400,7 +402,9 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                               width: 8,
                               height: 8,
                               decoration: BoxDecoration(
-                                color: _selectedCourse?.accentColor ?? Colors.grey,
+                                color: _selectedCourse != null
+                                    ? (isDark ? Colors.white : const Color(0xFF090A0C))
+                                    : textSecondary,
                                 shape: BoxShape.circle,
                               ),
                             ),

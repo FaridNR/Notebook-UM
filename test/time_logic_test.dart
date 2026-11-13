@@ -235,5 +235,105 @@ void main() {
       expect(statusAfter.status, ClassStatus.selesai);
       expect(statusAfter.statusLabel, 'Selesai');
     });
+
+    test('TimeService timeToMinutes dan isValidTimeSlot hingga 24:00', () {
+      expect(TimeService.timeToMinutes('00:00'), 0);
+      expect(TimeService.timeToMinutes('08:30'), 510);
+      expect(TimeService.timeToMinutes('19:00'), 1140);
+      expect(TimeService.timeToMinutes('24:00'), 1440);
+
+      // Valid
+      expect(TimeService.isValidTimeSlot('08:00', '10:00'), isTrue);
+      expect(TimeService.isValidTimeSlot('19:00', '24:00'), isTrue);
+
+      // Invalid: start >= end
+      expect(TimeService.isValidTimeSlot('10:00', '08:00'), isFalse);
+      expect(TimeService.isValidTimeSlot('10:00', '10:00'), isFalse);
+
+      // Invalid: exceeds 24:00 (1440)
+      expect(TimeService.isValidTimeSlot('22:00', '24:30'), isFalse);
+    });
+
+    test('TimeService findSlotCollision mendeteksi tabrakan jadwal dengan tepat', () {
+      const existingSlot = ScheduleSlot(
+        id: 'slot-1',
+        courseId: 'C1',
+        courseCode: '111500',
+        courseName: 'Basis Data',
+        day: 1, // Senin
+        dayName: 'Senin',
+        startTime: '19:00',
+        endTime: '20:30',
+        room: 'Lab B',
+        durationMinutes: 90,
+      );
+
+      final list = [existingSlot];
+
+      // Tabrakan persis sama di hari yang sama
+      final c1 = TimeService.findSlotCollision(
+        day: 1,
+        startTime: '19:00',
+        endTime: '20:30',
+        existingSlots: list,
+      );
+      expect(c1, isNotNull);
+      expect(c1?.id, 'slot-1');
+
+      // Tabrakan beririsan di tengah (19:30 - 21:00)
+      final c2 = TimeService.findSlotCollision(
+        day: 1,
+        startTime: '19:30',
+        endTime: '21:00',
+        existingSlots: list,
+      );
+      expect(c2, isNotNull);
+
+      // Tabrakan mencakup seluruhnya (18:00 - 21:00)
+      final c3 = TimeService.findSlotCollision(
+        day: 1,
+        startTime: '18:00',
+        endTime: '21:00',
+        existingSlots: list,
+      );
+      expect(c3, isNotNull);
+
+      // Tidak tabrakan: setelah slot (20:30 - 22:00)
+      final c4 = TimeService.findSlotCollision(
+        day: 1,
+        startTime: '20:30',
+        endTime: '22:00',
+        existingSlots: list,
+      );
+      expect(c4, isNull);
+
+      // Tidak tabrakan: sebelum slot (17:00 - 19:00)
+      final c5 = TimeService.findSlotCollision(
+        day: 1,
+        startTime: '17:00',
+        endTime: '19:00',
+        existingSlots: list,
+      );
+      expect(c5, isNull);
+
+      // Tidak tabrakan: hari berbeda (Selasa)
+      final c6 = TimeService.findSlotCollision(
+        day: 2,
+        startTime: '19:00',
+        endTime: '20:30',
+        existingSlots: list,
+      );
+      expect(c6, isNull);
+
+      // Edit slot sendiri: dikecualikan id-nya sehingga tidak dianggap tabrakan
+      final c7 = TimeService.findSlotCollision(
+        day: 1,
+        startTime: '19:00',
+        endTime: '20:30',
+        existingSlots: list,
+        excludeSlotId: 'slot-1',
+      );
+      expect(c7, isNull);
+    });
   });
 }

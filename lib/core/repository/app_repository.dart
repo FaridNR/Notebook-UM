@@ -5,6 +5,7 @@ import '../../models/course.dart';
 import '../../models/schedule_slot.dart';
 import '../../models/task.dart';
 import '../database/database_helper.dart';
+import '../time/time_service.dart';
 
 /// Repository: Lapisan abstraksi data & kueri basis data
 /// Menjembatani antara model domain (Course, Task, Slot) dengan eksekusi query SQLite.
@@ -43,6 +44,13 @@ class AppRepository {
           isCompleted: (row['is_completed'] as int) == 1,
         ),
       );
+    }
+
+    for (final slotList in slotsByCourse.values) {
+      slotList.sort((a, b) {
+        if (a.day != b.day) return a.day.compareTo(b.day);
+        return TimeService.timeToMinutes(a.startTime).compareTo(TimeService.timeToMinutes(b.startTime));
+      });
     }
 
     return courseRows.map((row) {
