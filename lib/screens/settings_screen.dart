@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/time/time_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 
@@ -125,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () {
                     widget.appState.updateProfile(timezone: tz['id']);
                     Navigator.pop(ctx);
-                    widget.appState.showToast('Zona waktu diubah ke ${tz['id']}');
+                    widget.appState.showToast('Zona waktu diubah ke ${tz['label']}');
                   },
                 );
               }),
@@ -517,7 +518,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        '${widget.appState.timezone} (UTC+8)',
+                                        '${widget.appState.timezone} (${widget.appState.timezoneAbbr}, UTC+${TimeService.getTimezoneOffsetHours(widget.appState.timezone)})',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(fontSize: 11, color: textSecondary),

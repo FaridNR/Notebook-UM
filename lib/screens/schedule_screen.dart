@@ -73,7 +73,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              Text('${slot.dayName} • ${slot.startTime} – ${slot.endTime} WITA', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
+              Text('${slot.dayName} • ${slot.startTime} – ${slot.endTime} ${widget.appState.timezoneAbbr}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
               Text('Ruang: ${slot.room} • Dosen: ${course?.lecturer ?? "-"}', style: TextStyle(fontSize: 12, color: textSecondary)),
               const SizedBox(height: 20),
 
@@ -164,7 +164,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         content: Text(
-          'Apakah Anda yakin ingin menghapus slot sesi ${slot.courseName} (${slot.dayName}, ${slot.startTime} – ${slot.endTime} WITA) di ${slot.room}?',
+          'Apakah Anda yakin ingin menghapus slot sesi ${slot.courseName} (${slot.dayName}, ${slot.startTime} – ${slot.endTime} ${widget.appState.timezoneAbbr}) di ${slot.room}?',
           style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
         ),
         actions: [
@@ -251,7 +251,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${widget.appState.totalSlots} Slot Terjadwal • Zona WITA',
+                          '${widget.appState.totalSlots} Slot Terjadwal • Zona ${widget.appState.timezoneAbbr}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -395,7 +395,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} WITA',
+                        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} ${widget.appState.timezoneAbbr}',
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: textSecondary),
                       ),
                     ],
@@ -535,7 +535,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           children: [
                             Flexible(
                               child: Text(
-                                '${slot.startTime} – ${slot.endTime} WITA',
+                                '${slot.startTime} – ${slot.endTime} ${widget.appState.timezoneAbbr}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: textPrimary),
@@ -628,7 +628,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '${s.startTime} – ${s.endTime} WITA',
+                                  '${s.startTime} – ${s.endTime} ${widget.appState.timezoneAbbr}',
                                   style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: textSecondary),
                                 ),
                               ],

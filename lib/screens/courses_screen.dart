@@ -869,7 +869,7 @@ class CoursesScreen extends StatelessWidget {
           ),
         ),
         content: Text(
-          'Apakah Anda yakin ingin menghapus slot sesi ${slot.dayName} (${slot.startTime} – ${slot.endTime} WITA) di ${slot.room}?',
+          'Apakah Anda yakin ingin menghapus slot sesi ${slot.dayName} (${slot.startTime} – ${slot.endTime} ${appState.timezoneAbbr}) di ${slot.room}?',
           style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
         ),
         actions: [
@@ -1209,7 +1209,7 @@ class CoursesScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${appState.totalCourses} / 30 Matkul Terisi',
+                              '${appState.totalCourses} Matkul Terdaftar',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -1218,28 +1218,7 @@ class CoursesScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-
-                        // Visual progress bar
-                        Container(
-                          height: 6,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: insetTone,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: (appState.totalSks / 24).clamp(0.0, 1.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.blueAccent,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1254,7 +1233,7 @@ class CoursesScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${appState.totalSks} dari Max 24 SKS',
+                              '${appState.totalSks} SKS',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -1507,7 +1486,7 @@ class CoursesScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      '${slot.dayName}: ${slot.startTime} – ${slot.endTime} WITA',
+                      '${slot.dayName}: ${slot.startTime} – ${slot.endTime} ${appState.timezoneAbbr}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

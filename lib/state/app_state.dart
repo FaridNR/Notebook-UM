@@ -60,6 +60,7 @@ class AppState extends ChangeNotifier {
   String get prodi => _prodi;
   String get campus => _campus;
   String get timezone => _timezone;
+  String get timezoneAbbr => TimeService.getTimezoneAbbr(_timezone);
   String get userEmail => _userEmail;
   String get userPassword => _userPassword;
   bool get isLoggedIn => _isLoggedIn;
@@ -87,7 +88,7 @@ class AppState extends ChangeNotifier {
       : _repository = repository ??
             dbService?.repo ??
             AppRepository(dbHelper: dbHelper ?? dbService?.helper ?? DatabaseHelper.instance) {
-    _liveNow = TimeService.nowInWita();
+    _liveNow = TimeService.nowInTimezone(_timezone);
     _startMinuteTicker();
     _initializeData();
     _loadDbFuture = _loadFromDatabase();
@@ -109,7 +110,10 @@ class AppState extends ChangeNotifier {
       if (settings.containsKey('nim')) _nim = settings['nim']!;
       if (settings.containsKey('prodi')) _prodi = settings['prodi']!;
       if (settings.containsKey('campus')) _campus = settings['campus']!;
-      if (settings.containsKey('timezone')) _timezone = settings['timezone']!;
+      if (settings.containsKey('timezone')) {
+        _timezone = settings['timezone']!;
+        _liveNow = TimeService.nowInTimezone(_timezone);
+      }
       if (settings.containsKey('user_email')) _userEmail = settings['user_email']!;
       if (settings.containsKey('user_password')) _userPassword = settings['user_password']!;
       if (settings.containsKey('is_logged_in')) _isLoggedIn = settings['is_logged_in'] == '1';
@@ -129,14 +133,14 @@ class AppState extends ChangeNotifier {
   void _startMinuteTicker() {
     _minuteTicker?.cancel();
     _minuteTicker = Timer.periodic(const Duration(minutes: 1), (_) {
-      _liveNow = TimeService.nowInWita();
+      _liveNow = TimeService.nowInTimezone(_timezone);
       notifyListeners();
     });
   }
 
   /// Called on AppLifecycleState.resumed (PRD Section 1.7)
   void resumeTick() {
-    _liveNow = TimeService.nowInWita();
+    _liveNow = TimeService.nowInTimezone(_timezone);
     notifyListeners();
   }
 
@@ -269,7 +273,18 @@ class AppState extends ChangeNotifier {
     }
     if (timezone != null) {
       _timezone = timezone;
+      _liveNow = TimeService.nowInTimezone(_timezone);
       unawaited(_repository.setSetting('timezone', timezone));
+      // Refresh dueText timezone label for next session tasks
+      for (int i = 0; i < _tasks.length; i++) {
+        final t = _tasks[i];
+        if (t.dueMode == DueMode.nextSession && t.dueAt != null && !t.isCompleted) {
+          _tasks[i] = t.copyWith(
+            dueText: TimeService.formatNextSessionText(t.dueAt!, timezoneAbbr),
+          );
+          unawaited(_repository.updateTask(_tasks[i]));
+        }
+      }
     }
     notifyListeners();
   }
@@ -512,7 +527,7 @@ class AppState extends ChangeNotifier {
           if (nextDue != null) {
             _tasks[i] = t.copyWith(
               dueAt: nextDue,
-              dueText: TimeService.formatNextSessionText(nextDue),
+              dueText: TimeService.formatNextSessionText(nextDue, timezoneAbbr),
             );
             adjustedCount++;
             unawaited(_repository.updateTask(_tasks[i]));

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/time/time_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 
@@ -13,6 +14,9 @@ class AboutScreen extends StatelessWidget {
     final bgCard = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final tzLabel = appState != null
+        ? '${appState!.timezoneAbbr} UTC+${TimeService.getTimezoneOffsetHours(appState!.timezone)}'
+        : 'WIB / WITA / WIT';
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
@@ -209,7 +213,7 @@ class AboutScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildFeatureBullet(
                   icon: Icons.access_time_rounded,
-                  title: 'Real-time Class Tracker (WITA UTC+8)',
+                  title: 'Real-time Class Tracker ($tzLabel)',
                   desc: 'Mendeteksi otomatis kelas yang sedang berlangsung, akan datang, atau selesai secara presisi.',
                   color: const Color(0xFFD97706),
                   textPrimary: textPrimary,

@@ -28,18 +28,50 @@ class TimeService {
   static const String defaultTimezone = 'Asia/Makassar';
   static const int witaOffsetHours = 8;
 
-  /// Returns current DateTime adjusted to WITA (UTC+8)
-  static DateTime nowInWita([DateTime? customNow]) {
+  /// Returns UTC offset hours for supported Indonesian timezones
+  static int getTimezoneOffsetHours(String tz) {
+    switch (tz) {
+      case 'Asia/Jakarta':
+        return 7;
+      case 'Asia/Jayapura':
+        return 9;
+      case 'Asia/Makassar':
+      default:
+        return 8;
+    }
+  }
+
+  /// Returns 3-letter abbreviation (WIB, WITA, WIT)
+  static String getTimezoneAbbr(String tz) {
+    switch (tz) {
+      case 'Asia/Jakarta':
+        return 'WIB';
+      case 'Asia/Jayapura':
+        return 'WIT';
+      case 'Asia/Makassar':
+      default:
+        return 'WITA';
+    }
+  }
+
+  /// Returns current DateTime adjusted to the given timezone
+  static DateTime nowInTimezone(String timezone, [DateTime? customNow]) {
+    final offsetHours = getTimezoneOffsetHours(timezone);
     if (customNow != null) {
       if (customNow.isUtc) {
-        final wita = customNow.add(const Duration(hours: witaOffsetHours));
-        return DateTime(wita.year, wita.month, wita.day, wita.hour, wita.minute, wita.second);
+        final adjusted = customNow.add(Duration(hours: offsetHours));
+        return DateTime(adjusted.year, adjusted.month, adjusted.day, adjusted.hour, adjusted.minute, adjusted.second);
       }
       return customNow;
     }
     final utc = DateTime.now().toUtc();
-    final wita = utc.add(const Duration(hours: witaOffsetHours));
-    return DateTime(wita.year, wita.month, wita.day, wita.hour, wita.minute, wita.second);
+    final adjusted = utc.add(Duration(hours: offsetHours));
+    return DateTime(adjusted.year, adjusted.month, adjusted.day, adjusted.hour, adjusted.minute, adjusted.second);
+  }
+
+  /// Returns current DateTime adjusted to WITA (UTC+8)
+  static DateTime nowInWita([DateTime? customNow]) {
+    return nowInTimezone('Asia/Makassar', customNow);
   }
 
   /// Parses "HH:mm" time string into total minutes from 00:00 (e.g. "19:30" -> 1170, "24:00" -> 1440)
@@ -223,7 +255,7 @@ class TimeService {
   }
 
   /// Formats next session due date for display (e.g. "Sesi Kamis, 27 Okt • 13:00 WITA")
-  static String formatNextSessionText(DateTime dueAt) {
+  static String formatNextSessionText(DateTime dueAt, [String tzAbbr = 'WITA']) {
     const dayNames = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
     const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -233,7 +265,7 @@ class TimeService {
     final hour = dueAt.hour.toString().padLeft(2, '0');
     final minute = dueAt.minute.toString().padLeft(2, '0');
 
-    return 'Sesi $dayName, $day $month • $hour:$minute WITA';
+    return 'Sesi $dayName, $day $month • $hour:$minute $tzAbbr';
   }
 
   /// Formats human countdown text (e.g. "Sisa 33j", "Jatuh tempo hari ini", "Terlambat")
@@ -265,8 +297,8 @@ class TimeService {
     }
   }
 
-  /// Formats date header (e.g., "Rabu, 26 Okt • 14:15 WITA")
-  static String formatLiveClock(DateTime dateTime) {
+  /// Formats date header (e.g., "Rabu, 26 Okt • 14:15 WITA" or "13:15 WIB")
+  static String formatLiveClock(DateTime dateTime, [String tzAbbr = 'WITA']) {
     const dayNames = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
     const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -276,6 +308,6 @@ class TimeService {
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
 
-    return '$dayName, $day $month • $hour:$minute WITA';
+    return '$dayName, $day $month • $hour:$minute $tzAbbr';
   }
 }

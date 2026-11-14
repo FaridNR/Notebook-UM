@@ -193,7 +193,7 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${collision.dayName} • ${collision.startTime} – ${collision.endTime} WITA',
+                    '${collision.dayName} • ${collision.startTime} – ${collision.endTime} ${widget.appState.timezoneAbbr}',
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFE11D48)),
                   ),
                   const SizedBox(height: 2),
@@ -207,6 +207,108 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
             const SizedBox(height: 12),
             Text(
               'Silakan sesuaikan jam mulai atau jam selesai agar tidak saling beririsan.',
+              style: TextStyle(fontSize: 12, color: textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(
+              'Tutup & Perbaiki Jam',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF090A0C),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInvalidTimeRangeDialog({required String start, required String end}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF271B1E) : const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFE11D48), size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Jam Tidak Valid!',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Input jadwal kuliah tidak dapat disimpan karena jam mulai harus lebih awal dari jam selesai:',
+              style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurfaceStep : AppColors.lightSurfaceStep,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF27272A) : const Color(0xFFE5E7EB),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Jam Mulai: $start',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textPrimary),
+                      ),
+                      Text(
+                        'Jam Selesai: $end',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textPrimary),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Jam mulai ($start) tidak boleh sama atau mendahului jam selesai ($end).',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFE11D48)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Silakan atur kembali agar jam mulai lebih awal dari jam selesai perkuliahan (maksimal jam 24:00).',
               style: TextStyle(fontSize: 12, color: textSecondary),
             ),
           ],
@@ -253,7 +355,7 @@ class _SlotFormSheetState extends State<SlotFormSheet> {
 
     // 2. Validasi jam mulai < jam selesai
     if (startMin >= endMin) {
-      widget.appState.showToast('Jam mulai harus lebih awal dari jam selesai (Maks 24:00)');
+      _showInvalidTimeRangeDialog(start: start, end: end);
       return;
     }
 

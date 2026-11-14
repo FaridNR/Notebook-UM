@@ -141,7 +141,7 @@ class TodayScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                TimeService.formatLiveClock(now),
+                                TimeService.formatLiveClock(now, appState.timezoneAbbr),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(

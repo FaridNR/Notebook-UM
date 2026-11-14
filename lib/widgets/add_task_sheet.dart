@@ -115,7 +115,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
 
         if (dueAt != null) {
           dueCategory = TaskDueCategory.nextSession;
-          dueText = TimeService.formatNextSessionText(dueAt);
+          dueText = TimeService.formatNextSessionText(dueAt, widget.appState.timezoneAbbr);
           final daysDiff = dueAt.difference(now).inDays;
           secondaryMeta = daysDiff > 0 ? '+$daysDiff Hari' : 'Hari Ini';
         } else {
@@ -134,11 +134,11 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
       final diff = _customDate.difference(now);
       if (diff.inHours < 24 && !diff.isNegative) {
         dueCategory = TaskDueCategory.urgent;
-        dueText = 'Besok, ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} WITA';
+        dueText = 'Besok, ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} ${widget.appState.timezoneAbbr}';
         secondaryMeta = 'Batas Pengumpulan';
       } else {
         dueCategory = TaskDueCategory.upcoming;
-        dueText = '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} WITA';
+        dueText = '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} ${widget.appState.timezoneAbbr}';
         secondaryMeta = 'Kalender';
       }
     } else {
@@ -532,7 +532,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                               const SizedBox(height: 2),
                               Text(
                                 nextSessionDue != null
-                                    ? TimeService.formatNextSessionText(nextSessionDue)
+                                    ? TimeService.formatNextSessionText(nextSessionDue, widget.appState.timezoneAbbr)
                                     : 'Mata kuliah ini belum punya jadwal, jadi tenggat belum bisa dihitung.',
                                 style: TextStyle(
                                   fontSize: 12,
@@ -572,7 +572,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                               Icon(Icons.calendar_month_outlined, size: 18, color: textPrimary),
                               const SizedBox(width: 8),
                               Text(
-                                '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} WITA',
+                                '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} ${widget.appState.timezoneAbbr}',
                                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary),
                               ),
                             ],

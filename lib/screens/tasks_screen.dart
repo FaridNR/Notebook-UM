@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/course.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
@@ -165,9 +167,9 @@ class _TasksScreenState extends State<TasksScreen> {
                     label: 'WhatsApp',
                     color: const Color(0xFF25D366),
                     onTap: () {
-                      Clipboard.setData(ClipboardData(text: fullText));
                       Navigator.pop(ctx);
-                      widget.appState.showToast('Format WhatsApp disalin! Tempel ke chat tujuan');
+                      _openWhatsAppShare(fullText);
+                      widget.appState.showToast('Membuka WhatsApp...');
                     },
                     isDark: isDark,
                   ),
@@ -176,9 +178,9 @@ class _TasksScreenState extends State<TasksScreen> {
                     label: 'Telegram',
                     color: const Color(0xFF229ED9),
                     onTap: () {
-                      Clipboard.setData(ClipboardData(text: fullText));
                       Navigator.pop(ctx);
-                      widget.appState.showToast('Format Telegram disalin! Tempel ke chat/grup');
+                      _openTelegramShare(fullText);
+                      widget.appState.showToast('Membuka Telegram...');
                     },
                     isDark: isDark,
                   ),
@@ -187,9 +189,9 @@ class _TasksScreenState extends State<TasksScreen> {
                     label: 'LINE',
                     color: const Color(0xFF06C755),
                     onTap: () {
-                      Clipboard.setData(ClipboardData(text: fullText));
                       Navigator.pop(ctx);
-                      widget.appState.showToast('Format LINE disalin! Tempel ke obrolan');
+                      _openLineShare(fullText);
+                      widget.appState.showToast('Membuka LINE...');
                     },
                     isDark: isDark,
                   ),
@@ -198,9 +200,8 @@ class _TasksScreenState extends State<TasksScreen> {
                     label: 'Instagram',
                     color: const Color(0xFFE1306C),
                     onTap: () {
-                      Clipboard.setData(ClipboardData(text: fullText));
                       Navigator.pop(ctx);
-                      widget.appState.showToast('Ringkasan tugas disalin untuk Instagram DM/Story');
+                      _openSystemShare(fullText, subject: 'Tugas Kuliah: ${task.title}');
                     },
                     isDark: isDark,
                   ),
@@ -209,9 +210,9 @@ class _TasksScreenState extends State<TasksScreen> {
                     label: 'Catatan',
                     color: const Color(0xFFF59E0B),
                     onTap: () {
-                      Clipboard.setData(ClipboardData(text: fullText));
                       Navigator.pop(ctx);
-                      widget.appState.showToast('Teks disalin untuk disimpan ke Aplikasi Catatan');
+                      _openSystemShare(fullText, subject: 'Catatan Tugas: ${task.title}');
+                      widget.appState.showToast('Membuka Aplikasi Catatan...');
                     },
                     isDark: isDark,
                   ),
@@ -219,12 +220,11 @@ class _TasksScreenState extends State<TasksScreen> {
               ),
               const SizedBox(height: 18),
 
-              // Quick Copy Button
+              // Open System Share Sheet (Direct to apps)
               GestureDetector(
                 onTap: () {
-                  Clipboard.setData(ClipboardData(text: fullText));
                   Navigator.pop(ctx);
-                  widget.appState.showToast('Seluruh teks catatan tugas disalin ke papan klip');
+                  _openSystemShare(fullText, subject: 'Catatan Tugas: ${task.title}');
                 },
                 child: Container(
                   height: 46,
@@ -237,17 +237,57 @@ class _TasksScreenState extends State<TasksScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.copy_rounded,
+                        Icons.share_rounded,
                         size: 16,
                         color: isDark ? const Color(0xFF090A0C) : Colors.white,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Salin Semua Teks (Papan Klip)',
+                        'Bagikan ke Aplikasi',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: isDark ? const Color(0xFF090A0C) : Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Quick Copy Button
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: fullText));
+                  Navigator.pop(ctx);
+                  widget.appState.showToast('Seluruh teks catatan tugas disalin ke papan klip');
+                },
+                child: Container(
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: insetTone,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF27272A) : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.copy_rounded,
+                        size: 15,
+                        color: textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Salin Semua Teks (Papan Klip)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: textSecondary,
                         ),
                       ),
                     ],
@@ -259,6 +299,88 @@ class _TasksScreenState extends State<TasksScreen> {
         );
       },
     );
+  }
+
+  Future<void> _openWhatsAppShare(String text) async {
+    final encoded = Uri.encodeComponent(text);
+    final appUri = Uri.parse('whatsapp://send?text=$encoded');
+    final webUri = Uri.parse('https://api.whatsapp.com/send?text=$encoded');
+    try {
+      if (await canLaunchUrl(appUri)) {
+        await launchUrl(appUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+      if (await canLaunchUrl(webUri)) {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+      await SharePlus.instance.share(ShareParams(text: text));
+    } catch (_) {
+      try {
+        await SharePlus.instance.share(ShareParams(text: text));
+      } catch (_) {
+        Clipboard.setData(ClipboardData(text: text));
+      }
+    }
+  }
+
+  Future<void> _openTelegramShare(String text) async {
+    final encoded = Uri.encodeComponent(text);
+    final appUri = Uri.parse('tg://msg?text=$encoded');
+    final webUri = Uri.parse('https://t.me/share/url?text=$encoded');
+    try {
+      if (await canLaunchUrl(appUri)) {
+        await launchUrl(appUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+      if (await canLaunchUrl(webUri)) {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+      await SharePlus.instance.share(ShareParams(text: text));
+    } catch (_) {
+      try {
+        await SharePlus.instance.share(ShareParams(text: text));
+      } catch (_) {
+        Clipboard.setData(ClipboardData(text: text));
+      }
+    }
+  }
+
+  Future<void> _openLineShare(String text) async {
+    final encoded = Uri.encodeComponent(text);
+    final appUri = Uri.parse('line://msg/text/$encoded');
+    final webUri = Uri.parse('https://line.me/R/msg/text/?$encoded');
+    try {
+      if (await canLaunchUrl(appUri)) {
+        await launchUrl(appUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+      if (await canLaunchUrl(webUri)) {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+      await SharePlus.instance.share(ShareParams(text: text));
+    } catch (_) {
+      try {
+        await SharePlus.instance.share(ShareParams(text: text));
+      } catch (_) {
+        Clipboard.setData(ClipboardData(text: text));
+      }
+    }
+  }
+
+  Future<void> _openSystemShare(String text, {String? subject}) async {
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: text,
+          subject: subject ?? 'Catatan Tugas Kuliah NoteBook UM',
+        ),
+      );
+    } catch (_) {
+      Clipboard.setData(ClipboardData(text: text));
+    }
   }
 
   Widget _buildShareOptionItem({

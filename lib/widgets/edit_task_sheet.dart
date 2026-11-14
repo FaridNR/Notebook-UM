@@ -121,7 +121,7 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
 
         if (dueAt != null) {
           dueCategory = TaskDueCategory.nextSession;
-          dueText = TimeService.formatNextSessionText(dueAt);
+          dueText = TimeService.formatNextSessionText(dueAt, widget.appState.timezoneAbbr);
           final daysDiff = dueAt.difference(now).inDays;
           secondaryMeta = daysDiff > 0 ? '+$daysDiff Hari' : 'Hari Ini';
         } else {
@@ -140,11 +140,11 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
       final diff = _customDate.difference(now);
       if (diff.inHours < 24 && !diff.isNegative) {
         dueCategory = TaskDueCategory.urgent;
-        dueText = 'Besok, ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} WITA';
+        dueText = 'Besok, ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} ${widget.appState.timezoneAbbr}';
         secondaryMeta = 'Batas Pengumpulan';
       } else {
         dueCategory = TaskDueCategory.upcoming;
-        dueText = '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} WITA';
+        dueText = '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} ${widget.appState.timezoneAbbr}';
         secondaryMeta = 'Kalender';
       }
     } else {
@@ -400,7 +400,7 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
                         _dueModeIndex == 0
                             ? 'Otomatis dihitung ke sesi kuliah berikutnya'
                             : (_dueModeIndex == 1
-                                ? '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} WITA'
+                                ? '${_customDate.day}/${_customDate.month}/${_customDate.year} • ${_customDate.hour.toString().padLeft(2, '0')}:${_customDate.minute.toString().padLeft(2, '0')} ${widget.appState.timezoneAbbr}'
                                 : 'Fleksibel (Tanpa batas waktu)'),
                         style: TextStyle(
                           fontSize: 12,

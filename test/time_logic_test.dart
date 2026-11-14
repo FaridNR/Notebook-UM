@@ -335,5 +335,47 @@ void main() {
       );
       expect(c7, isNull);
     });
+
+    test('TimeService sinkronisasi zona waktu aktif (WIB, WITA, WIT)', () {
+      expect(TimeService.getTimezoneOffsetHours('Asia/Jakarta'), 7);
+      expect(TimeService.getTimezoneOffsetHours('Asia/Makassar'), 8);
+      expect(TimeService.getTimezoneOffsetHours('Asia/Jayapura'), 9);
+
+      expect(TimeService.getTimezoneAbbr('Asia/Jakarta'), 'WIB');
+      expect(TimeService.getTimezoneAbbr('Asia/Makassar'), 'WITA');
+      expect(TimeService.getTimezoneAbbr('Asia/Jayapura'), 'WIT');
+
+      final utcFixed = DateTime.utc(2026, 11, 14, 10, 0); // 10:00 UTC
+      final wib = TimeService.nowInTimezone('Asia/Jakarta', utcFixed);
+      final wita = TimeService.nowInTimezone('Asia/Makassar', utcFixed);
+      final wit = TimeService.nowInTimezone('Asia/Jayapura', utcFixed);
+
+      expect(wib.hour, 17); // 10 + 7
+      expect(wita.hour, 18); // 10 + 8
+      expect(wit.hour, 19); // 10 + 9
+
+      expect(TimeService.formatLiveClock(wib, 'WIB'), contains('17:00 WIB'));
+      expect(TimeService.formatLiveClock(wita, 'WITA'), contains('18:00 WITA'));
+      expect(TimeService.formatLiveClock(wit, 'WIT'), contains('19:00 WIT'));
+    });
+
+    test('AppState ganti zona waktu memperbarui timezoneAbbr dan format display', () async {
+      final appState = AppState();
+      await appState.loadDbFuture;
+
+      appState.updateProfile(timezone: 'Asia/Jakarta');
+      expect(appState.timezone, 'Asia/Jakarta');
+      expect(appState.timezoneAbbr, 'WIB');
+
+      appState.updateProfile(timezone: 'Asia/Jayapura');
+      expect(appState.timezone, 'Asia/Jayapura');
+      expect(appState.timezoneAbbr, 'WIT');
+
+      appState.updateProfile(timezone: 'Asia/Makassar');
+      expect(appState.timezone, 'Asia/Makassar');
+      expect(appState.timezoneAbbr, 'WITA');
+
+      appState.dispose();
+    });
   });
 }
