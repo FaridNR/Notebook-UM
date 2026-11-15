@@ -57,7 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: nameController,
               decoration: const InputDecoration(
                 labelText: 'Nama Lengkap',
-                hintText: 'Farid Noor Rahman',
+                hintText: '',
               ),
             ),
             const SizedBox(height: 8),
@@ -65,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: nimController,
               decoration: const InputDecoration(
                 labelText: 'NIM',
-                hintText: '2411001',
+                hintText: '',
               ),
             ),
             const SizedBox(height: 8),
@@ -73,7 +73,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: prodiController,
               decoration: const InputDecoration(
                 labelText: 'Program Studi / Kelas',
-                hintText: 'S1 Informatika • IFB5J',
+                hintText: '',
               ),
             ),
           ],

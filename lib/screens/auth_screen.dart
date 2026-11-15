@@ -450,7 +450,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   color: textPrimary,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: 'faridnoorrahman@gmail.com',
+                                  hintText: '',
                                   hintStyle: TextStyle(fontSize: 13, color: textSecondary),
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -485,7 +485,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   color: textPrimary,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: '0542411640',
+                                  hintText: '',
                                   hintStyle: TextStyle(fontSize: 13, color: textSecondary),
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -751,7 +751,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     // Info footnote
                     Text(
                       _authMode == 0
-                          ? 'Akun resmi mahasiswa IFB5J Universitas Mulia'
+                          ? 'Akun resmi mahasiswa Universitas Mulia'
                           : 'Data akun tersimpan aman di database lokal SQLite perangkat Anda',
                       textAlign: TextAlign.center,
                       style: TextStyle(
